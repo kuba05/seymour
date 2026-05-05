@@ -22,7 +22,8 @@ inductive Matroid.IsGood : Matroid α → Prop
 theorem Matroid.IsGood.isRegular {M : Matroid α} (hM : M.IsGood) : M.IsRegular := by
   induction hM with
   | graphic hM => exact hM.isRegular
-  | cographic hM => sorry
+  | cographic hM =>
+    
   | @isomorphicR10 M e hM => simp [←M.isRegular_mapEquiv_iff e, hM]
   | is1sum hMMM hM _ _ ihₗ ihᵣ => exact hMMM.isRegular hM ihₗ ihᵣ
   | is2sum hMMM hM _ _ ihₗ ihᵣ => exact hMMM.isRegular hM ihₗ ihᵣ
