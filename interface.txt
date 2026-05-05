@@ -1,0 +1,656 @@
+Basic/Basic.lean:def Function.range_unexpand : Lean.PrettyPrinter.Unexpander
+  | `($_ $f) => `($(f).$(Lean.mkIdent `range))
+  | _ => throw ()
+
+@[app_unexpander Function.support]
+def Function.support_unexpand : Lean.PrettyPrinter.Unexpander
+  | `($_ $f) => `($(f).$(Lean.mkIdent `support))
+  | _ => throw ()
+
+
+/-! ## Basic stuff -/
+
+variable {α : Type*}
+
+lemma Function.range_eq {ι : Type} (f : ι → α) : f.range = { a : α | ∃ i : ι, f i = a } :=
+Basic/Basic.lean:lemma dite_of_true {P : Prop} [Decidable P] (p : P) {f : P → α} {a : α} : (if hp : P then f hp else a) = f p := by
+Basic/Basic.lean:lemma dite_of_false {P : Prop} [Decidable P] (p : ¬P) {f : P → α} {a : α} : (if hp : P then f hp else a) = a := by
+Basic/Basic.lean:lemma Equiv.image_symm_apply {β : Type*} {X : Set α} (e : α ≃ β) (x : X) : (e.image X).symm ⟨e x.val, by simp⟩ = x :=
+Basic/Basic.lean:lemma Finset.sum_of_single_nonzero {ι : Type*} (s : Finset ι) [AddCommMonoid α] (f : ι → α) (a : ι) (ha : a ∈ s)
+    (hf : ∀ i ∈ s, i ≠ a → f i = 0) :
+    s.sum f = f a := by
+Basic/Basic.lean:lemma fintype_sum_of_single_nonzero {ι : Type*} [Fintype ι] [AddCommMonoid α] (f : ι → α) (a : ι)
+    (hf : ∀ i : ι, i ≠ a → f i = 0) :
+    Finset.univ.sum f = f a :=
+Basic/Basic.lean:lemma sum_elem_of_single_nonzero {ι : Type*} [AddCommMonoid α] {f : ι → α} {S : Set ι} [Fintype S] {a : ι} (haS : a ∈ S)
+    (hf : ∀ i : ι, i ≠ a → f i = 0) :
+    ∑ i : S.Elem, f i = f a := by
+Basic/Basic.lean:lemma sum_over_fin_succ_of_only_zeroth_nonzero {n : ℕ} [AddCommMonoid α] {f : Fin n.succ → α}
+    (hf : ∀ i : Fin n.succ, i ≠ 0 → f i = 0) :
+    Finset.univ.sum f = f 0 := by
+Basic/Conversions.lean:def HasSubset.Subset.elem (hXY : X ⊆ Y) (x : X.Elem) : Y.Elem :=
+Basic/Conversions.lean:lemma HasSubset.Subset.elem_range (hXY : X ⊆ Y) : hXY.elem.range = { a : Y.Elem | a.val ∈ X } := by
+Basic/Conversions.lean:lemma HasSubset.Subset.elem_injective (hXY : X ⊆ Y) : hXY.elem.Injective := by
+Basic/Conversions.lean:def Subtype.toSum [∀ a, Decidable (a ∈ X)] [∀ a, Decidable (a ∈ Y)] (i : (X ∪ Y).Elem) : X.Elem ⊕ Y.Elem :=
+Basic/Conversions.lean:def Subtype.toSum_unexpand : Lean.PrettyPrinter.Unexpander
+  | `($_ $i) => `($(i).$(Lean.mkIdent `toSum))
+  | _ => throw ()
+
+@[simp]
+lemma toSum_left [∀ a, Decidable (a ∈ X)] [∀ a, Decidable (a ∈ Y)] {x : (X ∪ Y).Elem}
+    (hx : x.val ∈ X) :
+    x.toSum = ◩⟨x.val, hx⟩ := by
+Basic/Conversions.lean:lemma toSum_right [∀ a, Decidable (a ∈ X)] [∀ a, Decidable (a ∈ Y)] {y : (X ∪ Y).Elem}
+    (hyX : y.val ∉ X) (hyY : y.val ∈ Y) :
+    y.toSum = ◪⟨y.val, hyY⟩ := by
+Basic/Conversions.lean:lemma val_eq_val_of_toSum_eq_left [∀ a, Decidable (a ∈ X)] [∀ a, Decidable (a ∈ Y)] {x : X} {x' : (X ∪ Y).Elem}
+    (hxx : x'.toSum = ◩x) :
+    x.val = x'.val := by
+Basic/Conversions.lean:lemma val_eq_val_of_toSum_eq_right [∀ a, Decidable (a ∈ X)] [∀ a, Decidable (a ∈ Y)] {y : Y} {y' : (X ∪ Y).Elem}
+    (hyy : y'.toSum = ◪y) :
+    y.val = y'.val := by
+Basic/Conversions.lean:def Sum.toUnion (i : X.Elem ⊕ Y.Elem) : (X ∪ Y).Elem :=
+Basic/Conversions.lean:lemma toUnion_left (x : X.Elem) : @Sum.toUnion α X Y ◩x = ⟨x.val, Set.subset_union_left x.property⟩ :=
+Basic/Conversions.lean:lemma toUnion_right (y : Y.Elem) : @Sum.toUnion α X Y ◪y = ⟨y.val, Set.subset_union_right y.property⟩ :=
+Basic/Conversions.lean:lemma toSum_toUnion (i : (X ∪ Y).Elem) :
+    i.toSum.toUnion = i := by
+Basic/Conversions.lean:lemma toUnion_toSum (hXY : X ⫗ Y) (i : X.Elem ⊕ Y.Elem) :
+    i.toUnion.toSum = i := by
+Basic/Conversions.lean:def Disjoint.equivSumUnion (hXY : X ⫗ Y) : X.Elem ⊕ Y.Elem ≃ (X ∪ Y).Elem :=
+Basic/Conversions.lean:lemma equivSumUnion_apply_left (hXY : X ⫗ Y) (x : X.Elem) :
+    hXY.equivSumUnion ◩x = ⟨x.val, Set.subset_union_left x.property⟩ :=
+Basic/Conversions.lean:lemma equivSumUnion_apply_right (hXY : X ⫗ Y) (y : Y.Elem) :
+    hXY.equivSumUnion ◪y = ⟨y.val, Set.subset_union_right y.property⟩ :=
+Basic/Conversions.lean:lemma equivSumUnion_symm_apply_left (hXY : X ⫗ Y) {x : (X ∪ Y).Elem} (hx : x.val ∈ X) :
+    hXY.equivSumUnion.symm x = ◩⟨x.val, hx⟩ :=
+Basic/Conversions.lean:lemma equivSumUnion_symm_apply_right (hXY : X ⫗ Y) {y : (X ∪ Y).Elem} (hy : y.val ∈ Y) :
+    hXY.equivSumUnion.symm y = ◪⟨y.val, hy⟩ :=
+Basic/Fin.lean:lemma fin1_eq_fin1 (a b : Fin 1) : a = b := by
+Basic/Fin.lean:lemma fin2_eq_1_of_ne_0 {a : Fin 2} (ha : a ≠ 0) : a = 1 := by
+Basic/Fin.lean:lemma fin2_eq_0_of_ne_1 {a : Fin 2} (ha : a ≠ 1) : a = 0 := by
+Basic/Fin.lean:lemma fin3_eq_2_of_ne_0_1 {a : Fin 3} (ha0 : a ≠ 0) (ha1 : a ≠ 1) : a = 2 := by
+Basic/Fin.lean:lemma fin3_eq_1_of_ne_0_2 {a : Fin 3} (ha0 : a ≠ 0) (ha2 : a ≠ 2) : a = 1 := by
+Basic/Fin.lean:lemma fin3_eq_0_of_ne_1_2 {a : Fin 3} (ha1 : a ≠ 1) (ha2 : a ≠ 2) : a = 0 := by
+Basic/Fin.lean:lemma Z2_eq_1_of_ne_0 {a : Z2} (ha : a ≠ 0) : a = 1 :=
+Basic/Fin.lean:lemma Z2_eq_0_of_ne_1 {a : Z2} (ha : a ≠ 1) : a = 0 :=
+Basic/Fin.lean:lemma Z3_eq_2_of_ne_0_1 {a : Z3} (ha0 : a ≠ 0) (ha1 : a ≠ 1) : a = 2 :=
+Basic/Fin.lean:lemma Z3_eq_1_of_ne_0_2 {a : Z3} (ha0 : a ≠ 0) (ha2 : a ≠ 2) : a = 1 :=
+Basic/Fin.lean:lemma Z3_eq_0_of_ne_1_2 {a : Z3} (ha1 : a ≠ 1) (ha2 : a ≠ 2) : a = 0 :=
+Basic/Fin.lean:lemma Z2.eq_0_or_1 (a : Z2) : a = 0 ∨ a = 1 := by
+Basic/Fin.lean:lemma Z2_ext {a b : Z2} (hab : a.val = b.val) : a = b := by
+Basic/Fin.lean:lemma Z2_ext_iff (a b : Z2) : a = b ↔ a.val = b.val := by
+Basic/Fin.lean:lemma Z2.valCast_in_signTypeCastRange (x : Z2) :
+    (x.val.cast : ℚ) ∈ SignType.cast.range := by
+Basic/Fin.lean:lemma cast_1_fromZ2_toRat : ZMod.cast (1 : Z2) = (1 : ℚ) := by
+Basic/Fin.lean:lemma Z2_mul_cast_toRat (a b : Z2) : ((a * b).cast : ℚ) = (a.cast : ℚ) * (b.cast : ℚ) := by
+Basic/Fin.lean:lemma abs_mul_eq_zmod_cast {a b : Z2} {a' b' : ℚ} (haa : |a'| = a.cast) (hbb : |b'| = b.cast) :
+    |a' * b'| = (a * b).cast := by
+Basic/Fin.lean:lemma abs_add_eq_zmod_cast {a b : Z2} {a' b' : ℚ} (haa : |a'| = a.cast) (hbb : |b'| = b.cast)
+    (hab : a' + b' ∈ SignType.cast.range) :
+    |a' + b'| = (a + b).cast := by
+Basic/Fin.lean:lemma abs_add_add_eq_zmod_cast {a b c : Z2} {a' b' c' : ℚ} (haa : |a'| = a.cast) (hbb : |b'| = b.cast) (hcc : |c'| = c.cast)
+    (habc : a' + b' + c' ∈ SignType.cast.range) :
+    |a' + b' + c'| = (a + b + c).cast := by
+Basic/Fin.lean:def equivUnitSumUnit : Unit ⊕ Unit ≃ Fin 2 :=
+Basic/Fin.lean:lemma eq_fin2swap_of_ne_fin2refl {e : Fin 2 ≃ Fin 2} (he : e ≠ fin2refl) : e = fin2swap := by
+Basic/FunctionDecompose.lean:def Function.decomposeSum (f : α → β₁ ⊕ β₂) :
+    α ≃ { x₁ : α × β₁ // f x₁.fst = ◩x₁.snd } ⊕ { x₂ : α × β₂ // f x₂.fst = ◪x₂.snd } where
+  toFun a :=
+Basic/FunctionDecompose.lean:def Function.decomposeSum_unexpand : Lean.PrettyPrinter.Unexpander
+  | `($_ $f) => `($(f).$(Lean.mkIdent `decomposeSum))
+  | _ => throw ()
+
+@[simp ←]
+lemma Function.eq_comp_decomposeSum (f : α → β₁ ⊕ β₂) :
+    f = Sum.elim (Sum.inl ∘ (·.val.snd)) (Sum.inr ∘ (·.val.snd)) ∘ f.decomposeSum := by
+Basic/FunctionDecompose.lean:lemma Function.decomposeSum_card_eq [Fintype α] (f : α → β₁ ⊕ β₂) :
+    #{ x₁ : α × β₁ // f x₁.fst = ◩x₁.snd } + #{ x₂ : α × β₂ // f x₂.fst = ◪x₂.snd } = #α := by
+Basic/FunctionToHalfSum.lean:lemma sum_ne_inl {x : β₁ ⊕ β₂} (hx₁ : ∀ b₁ : β₁, x ≠ ◩b₁) : ∃ b₂ : β₂, x = ◪b₂ := by
+Basic/FunctionToHalfSum.lean:lemma sum_ne_inr {x : β₁ ⊕ β₂} (hx₂ : ∀ b₂ : β₂, x ≠ ◪b₂) : ∃ b₁ : β₁, x = ◩b₁ := by
+Basic/FunctionToHalfSum.lean:lemma fn_sum_ne_inl {f : α → β₁ ⊕ β₂} (hf : ∀ a : α, ∀ b₁ : β₁, f a ≠ ◩b₁) : ∀ a : α, ∃ b₂ : β₂, f a = ◪b₂ :=
+Basic/FunctionToHalfSum.lean:lemma fn_sum_ne_inr {f : α → β₁ ⊕ β₂} (hf : ∀ a : α, ∀ b₂ : β₂, f a ≠ ◪b₂) : ∀ a : α, ∃ b₁ : β₁, f a = ◩b₁ :=
+Basic/FunctionToHalfSum.lean:lemma eq_of_fn_sum_ne_inl {f : α → β₁ ⊕ β₂} (hf : ∀ a : α, ∀ b₁ : β₁, f a ≠ ◩b₁) (i : α) :
+    f i = ◪(fn_of_sum_ne_inl hf i) :=
+Basic/FunctionToHalfSum.lean:lemma eq_of_fn_sum_ne_inr {f : α → β₁ ⊕ β₂} (hf : ∀ a : α, ∀ b₂ : β₂, f a ≠ ◪b₂) (i : α) :
+    f i = ◩(fn_of_sum_ne_inr hf i) :=
+Basic/Sets.lean:lemma Disjoint.ni_right_of_in_left {X Y : Set α} {a : α} (hXY : Disjoint X Y) (ha : a ∈ X) : a ∉ Y :=
+Basic/Sets.lean:lemma Disjoint.ni_left_of_in_right {X Y : Set α} {a : α} (hXY : Disjoint X Y) (ha : a ∈ Y) : a ∉ X :=
+Basic/Sets.lean:lemma in_left_of_in_union_of_ni_right {X Y : Set α} {a : α} (haXY : a ∈ X ∪ Y) (haY : a ∉ Y) : a ∈ X := by
+Basic/Sets.lean:lemma in_right_of_in_union_of_ni_left {X Y : Set α} {a : α} (haXY : a ∈ X ∪ Y) (haX : a ∉ X) : a ∈ Y := by
+Basic/Sets.lean:lemma singleton_inter_in_left {X Y : Set α} {a : α} (ha : X ∩ Y = {a}) : a ∈ X :=
+Basic/Sets.lean:lemma singleton_inter_in_right {X Y : Set α} {a : α} (ha : X ∩ Y = {a}) : a ∈ Y :=
+Basic/Sets.lean:lemma right_eq_right_of_union_eq_union {A₁ A₂ B₁ B₂ : Set α}
+    (hA : A₁ = A₂) (hB₁ : A₁ ⫗ B₁) (hB₂ : A₂ ⫗ B₂) (hAB : A₁ ∪ B₁ = A₂ ∪ B₂) :
+    B₁ = B₂ := by
+Basic/Sets.lean:lemma union_disjoint_union_iff (A₁ A₂ B₁ B₂ : Set α) :
+    (A₁ ∪ A₂) ⫗ (B₁ ∪ B₂) ↔ (A₁ ⫗ B₁ ∧ A₂ ⫗ B₁) ∧ (A₁ ⫗ B₂ ∧ A₂ ⫗ B₂) := by
+Basic/Sets.lean:lemma union_disjoint_union_aux {A B C D : Set α} (hAB : A ⫗ B) (hCD : C ⫗ D) (hCB : C ⫗ B) (hAD : A ⫗ D) :
+    (A ∪ C) ⫗ (B ∪ D) := by
+Basic/Sets.lean:lemma union_disjoint_union {A B C D : Set α} (hAB : A ⫗ B) (hCD : C ⫗ D) (hAD : A ⫗ D) (hBC : B ⫗ C) :
+    (A ∪ C) ⫗ (B ∪ D) :=
+Basic/Sets.lean:lemma Subtype.subst_elem {X Y : Set α} (x : X) (hXY : X = Y) : (hXY ▸ x).val = x.val := by
+Basic/Sets.lean:lemma eq_toFinset_of_toSet_eq {s : Finset α} {S : Set α} [Fintype S] (hsS : s.toSet = S) : s = S.toFinset := by
+Basic/Sets.lean:def HasSubset.Subset.equiv {A B : Set α} [∀ i, Decidable (i ∈ A)] (hAB : A ⊆ B) : A.Elem ⊕ (B \ A).Elem ≃ B.Elem :=
+Basic/Sets.lean:lemma ofSupportFinite_support_eq [Zero β] {f : α → β} {S : Set α} (hS : Finite S) (hfS : f.support = S) :
+    (Finsupp.ofSupportFinite f (hfS ▸ hS)).support = S := by
+Basic/Sets.lean:lemma finset_of_cardinality_between [Fintype α] [Fintype β] {n : ℕ}
+    (hα : #α < n) (hn : n ≤ #α + #β) :
+    ∃ b : Finset β, #(α ⊕ b) = n ∧ Nonempty b := by
+Basic/SignTypeCast.lean:lemma zero_iff_ratCast_zero_of_in_signTypeCastRange {a : ℚ} (ha : a ∈ SignType.cast.range) :
+    a = 0 ↔ (a.cast : Z2) = 0 := by
+Basic/SignTypeCast.lean:lemma zero_in_signTypeCastRange [NonAssocRing R] : (0 : R) ∈ SignType.cast.range :=
+Basic/SignTypeCast.lean:lemma one_in_signTypeCastRange [NonAssocRing R] : (1 : R) ∈ SignType.cast.range :=
+Basic/SignTypeCast.lean:lemma neg_one_in_signTypeCastRange [NonAssocRing R] : (-1 : R) ∈ SignType.cast.range :=
+Basic/SignTypeCast.lean:lemma SignType.cast_ne_one_add_one [Ring R] [CharZero R] (s : SignType) : s.cast ≠ (1 : R) + (1 : R) := by
+Basic/SignTypeCast.lean:lemma SignType.cast_ne_neg_one_sub_one [Ring R] [CharZero R] (s : SignType) : s.cast ≠ (-1 : R) - (1 : R) := by
+Basic/SignTypeCast.lean:lemma SignType.cast_ne_neg_one_add_neg_one [Ring R] [CharZero R] (s : SignType) : s.cast ≠ (-1 : R) + (-1 : R) := by
+Basic/SignTypeCast.lean:lemma in_signTypeCastRange_mul_in_signTypeCastRange [NonAssocRing R] {a b : R}
+    (ha : a ∈ SignType.cast.range) (hb : b ∈ SignType.cast.range) :
+    a * b ∈ SignType.cast.range := by
+Basic/SignTypeCast.lean:lemma neg_one_mul_in_signTypeCastRange [NonAssocRing R] {a : R}
+    (ha : a ∈ SignType.cast.range) :
+    (-1) * a ∈ SignType.cast.range :=
+Basic/SignTypeCast.lean:lemma neg_in_signTypeCastRange [NonAssocRing R] {a : R}
+    (ha : a ∈ SignType.cast.range) :
+    -a ∈ SignType.cast.range := by
+Basic/SignTypeCast.lean:lemma in_signTypeCastRange_of_neg_one_mul [NonAssocRing R] {a : R}
+    (ha : (-1) * a ∈ SignType.cast.range) :
+    a ∈ SignType.cast.range := by
+Basic/SignTypeCast.lean:lemma in_signTypeCastRange_of_neg [NonAssocRing R] {a : R}
+    (ha : -a ∈ SignType.cast.range) :
+    a ∈ SignType.cast.range := by
+Basic/SignTypeCast.lean:lemma in_signTypeCastRange_iff_abs [LinearOrderedCommRing R] (a : R) :
+    a ∈ SignType.cast.range ↔ |a| ∈ SignType.cast.range := by
+Basic/SignTypeCast.lean:lemma inv_eq_self_of_in_signTypeCastRange [DivisionRing R] {a : R} (ha : a ∈ SignType.cast.range) :
+    1 / a = a := by
+Basic/SignTypeCast.lean:lemma neg_one_pow_in_signTypeCastRange [Ring R] (k : ℕ) :
+    (-1 : R) ^ k ∈ SignType.cast.range := by
+Basic/SignTypeCast.lean:lemma neg_one_pow_mul_in_signTypeCastRange [Ring R] {a : R} (ha : a ∈ SignType.cast.range) (k : ℕ) :
+    (-1) ^ k * a ∈ SignType.cast.range :=
+Basic/SubmoduleSpans.lean:lemma in_submoduleSpan_range [Semiring R] [Module R O] (f : α → O) (a : α) :
+    f a ∈ Submodule.span R f.range := by
+Basic/SubmoduleSpans.lean:lemma span_eq_of_maximal_subset_linearIndepOn (t : Set α) (hf : Maximal (fun r : Set α => r ⊆ t ∧ LinearIndepOn R f r) s) :
+    Submodule.span R (f '' s) = Submodule.span R (f '' t) := by
+Basic/SubmoduleSpans.lean:lemma span_eq_top_of_maximal_linearIndepOn (hf : Maximal (LinearIndepOn R f) s) :
+    Submodule.span R (f '' s) = Submodule.span R f.range := by
+Matrix/Basic.lean:lemma Matrix.one_fromCols_transpose [Zero α] [One α] {m n : Type*} [DecidableEq m] (A : Matrix m n α) :
+    (1 ◫ A)ᵀ = (1 : Matrix m m α) ⊟ Aᵀ := by
+Matrix/Basic.lean:lemma Matrix.one_fromRows_transpose [Zero α] [One α] {m n : Type*} [DecidableEq n] (A : Matrix m n α) :
+    (1 ⊟ A)ᵀ = ((1 : Matrix n n α) ◫ Aᵀ : Matrix ..) := by
+Matrix/Basic.lean:lemma Matrix.fromCols_one_transpose [Zero α] [One α] {m n : Type*} [DecidableEq m] (A : Matrix m n α) :
+    (A ◫ 1)ᵀ = Aᵀ ⊟ (1 : Matrix m m α) := by
+Matrix/Basic.lean:lemma Matrix.fromRows_one_transpose [Zero α] [One α] {m n : Type*} [DecidableEq n] (A : Matrix m n α) :
+    (A ⊟ 1)ᵀ = (Aᵀ ◫ (1 : Matrix n n α) : Matrix ..) := by
+Matrix/Basic.lean:lemma Matrix.ext_col {m n : Type*} {A B : Matrix m n α} (hAB : ∀ i : m, A i = B i) : A = B :=
+Matrix/Basic.lean:lemma Matrix.det_int_coe [DecidableEq α] [Fintype α] (A : Matrix α α ℤ) (F : Type*) [Field F] :
+    ((A.det : ℤ) : F) = ((A.map Int.cast).det : F) := by
+Matrix/Basic.lean:lemma Matrix.entrywiseProduct_outerProduct_eq_mul_col_mul_row {m n : Type*} [Semigroup α]
+    (A : Matrix m n α) (c : m → α) (r : n → α) :
+    A ⊡ c ⊗ r = Matrix.of (fun i : m => fun j : n => (A i j * c i) * r j) := by
+Matrix/Basic.lean:lemma Matrix.entrywiseProduct_outerProduct_eq_mul_row_mul_col {m n : Type*} [CommSemigroup α]
+    (A : Matrix m n α) (c : m → α) (r : n → α) :
+    A ⊡ c ⊗ r = Matrix.of (fun i : m => fun j : n => (A i j * r j) * c i) := by
+Matrix/Basic.lean:lemma sum_elem_smul_matrix_row_of_mem [DecidableEq α] {β : Type*} [NonAssocSemiring β] {x : α} {S : Set α} [Fintype S]
+    (f : α → β) (hxS : x ∈ S) :
+    ∑ i : S.Elem, f i • (1 : Matrix α α β) x i.val = f x := by
+Matrix/Basic.lean:lemma sum_elem_smul_matrix_row_of_nmem [DecidableEq α] {β : Type*} [NonAssocSemiring β] {x : α} {S : Set α} [Fintype S]
+    (f : α → β) (hxS : x ∉ S) :
+    ∑ i : S.Elem, f i • (1 : Matrix α α β) x i.val = 0 := by
+Matrix/Basic.lean:def Matrix.abs [LinearOrderedAddCommGroup α] {m n : Type*} (A : Matrix m n α) : Matrix m n α :=
+Matrix/Conversions.lean:def Matrix.toMatrixUnionUnion (A : Matrix (T₁.Elem ⊕ T₂.Elem) (S₁.Elem ⊕ S₂.Elem) R) :
+    Matrix (T₁ ∪ T₂).Elem (S₁ ∪ S₂).Elem R :=
+Matrix/Conversions.lean:lemma Matrix.toMatrixUnionUnion_transpose (A : Matrix (T₁.Elem ⊕ T₂.Elem) (S₁.Elem ⊕ S₂.Elem) R) :
+    A.toMatrixUnionUnion.transpose = A.transpose.toMatrixUnionUnion :=
+Matrix/Conversions.lean:lemma Matrix.IsTotallyUnimodular.toMatrixUnionUnion [CommRing R] {A : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) R}
+    (hA : A.IsTotallyUnimodular) :
+    A.toMatrixUnionUnion.IsTotallyUnimodular := by
+Matrix/Conversions.lean:lemma Matrix.IsSigningOf.toMatrixUnionUnion [LinearOrderedRing R]
+    {A : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) R} {U : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) Z2}
+    (hAU : A.IsSigningOf U) :
+    A.toMatrixUnionUnion.IsSigningOf U.toMatrixUnionUnion :=
+Matrix/Conversions.lean:def Matrix.toMatrixElemElem (A : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) R) (hT : T = T₁ ∪ T₂) (hS : S = S₁ ∪ S₂) :
+    Matrix T S R :=
+Matrix/Conversions.lean:lemma Matrix.toMatrixElemElem_apply (A : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) R) (hT : T = T₁ ∪ T₂) (hS : S = S₁ ∪ S₂) (i : T) (j : S) :
+    A.toMatrixElemElem hT hS i j = A (hT ▸ i).toSum (hS ▸ j).toSum := by
+Matrix/Conversions.lean:lemma Matrix.IsTotallyUnimodular.toMatrixElemElem [CommRing R] {A : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) R}
+    (hA : A.IsTotallyUnimodular) (hT : T = T₁ ∪ T₂) (hS : S = S₁ ∪ S₂) :
+    (A.toMatrixElemElem hT hS).IsTotallyUnimodular :=
+Matrix/Conversions.lean:lemma Matrix.IsSigningOf.toMatrixElemElem [LinearOrderedRing R]
+    {A : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) R} {U : Matrix (T₁ ⊕ T₂) (S₁ ⊕ S₂) Z2}
+    (hAU : A.IsSigningOf U) (hT : T = T₁ ∪ T₂) (hS : S = S₁ ∪ S₂) :
+    (A.toMatrixElemElem hT hS).IsSigningOf (U.toMatrixElemElem hT hS) :=
+Matrix/Determinants.lean:lemma Matrix.isUnit_2x2 (A : Matrix (Fin 2) (Fin 2) Z2) (hA : IsUnit A) :
+    ∃ f g : Fin 2 ≃ Fin 2, A.submatrix f g = 1 ∨ A.submatrix f g = !![1, 1; 0, 1] := by
+Matrix/Determinants.lean:lemma Matrix.det_eq_zero_of_col_eq_mul_col (A : Matrix Z Z R) (j₀ j₁ : Z) (hjj : j₀ ≠ j₁) (k : R)
+    (hAjj : ∀ i : Z, A i j₀ = k * A i j₁) :
+    A.det = (0 : R) := by
+Matrix/Determinants.lean:lemma Matrix.det_eq_zero_of_col_sub_col_eq_col [CommRing R] [IsDomain R] (A : Matrix Z Z R) (j₀ j₁ j₂ : Z)
+    (hAjjj : (A · j₀) - (A · j₁) = (A · j₂)) :
+    A.det = (0 : R) := by
+Matrix/Determinants.lean:lemma Matrix.submatrix_det_zero_of_not_injective_cols (A : Matrix X Y R) (f : Z → X) {g : Z → Y} (hg : ¬g.Injective) :
+    (A.submatrix f g).det = 0 := by
+Matrix/Determinants.lean:lemma Matrix.submatrix_det_zero_of_not_injective_rows (A : Matrix X Y R) {f : Z → X} (g : Z → Y) (hf : ¬f.Injective) :
+    (A.submatrix f g).det = 0 := by
+Matrix/LinearIndependenceBlock.lean:lemma Disjoint.matrix_one_eq_fromBlocks_toMatrixUnionUnion [DecidableEq α] [Zero R] [One R]
+    {Zₗ Zᵣ : Set α} [∀ a, Decidable (a ∈ Zₗ)] [∀ a, Decidable (a ∈ Zᵣ)]
+    (hZZ : Zₗ ⫗ Zᵣ) :
+    (1 : Matrix (Zₗ ∪ Zᵣ).Elem (Zₗ ∪ Zᵣ).Elem R) = (⊞ 1 0 0 1).toMatrixUnionUnion := by
+Matrix/LinearIndependenceBlock.lean:lemma Matrix.linearIndepOn_iff_fromCols_zero [Ring R] {X Y I : Set α} (A : Matrix X Y R) (hIX : I ∩ X ⊆ X) (Y₀ : Set α) :
+    LinearIndepOn R A hIX.elem.range ↔ LinearIndepOn R (A ◫ (0 : Matrix X Y₀ R)) hIX.elem.range := by
+Matrix/LinearIndependenceBlock.lean:lemma Matrix.linearIndepOn_iff_zero_fromCols [Ring R] {X Y I : Set α} (A : Matrix X Y R) (hIX : I ∩ X ⊆ X) (Y₀ : Set α) :
+    LinearIndepOn R A hIX.elem.range ↔ LinearIndepOn R ((0 : Matrix X Y₀ R) ◫ A) hIX.elem.range := by
+Matrix/LinearIndependenceBlock.lean:lemma linearIndepOn_toMatrixUnionUnion_elem_range_iff [Ring R] {Xₗ Yₗ Xᵣ Yᵣ I : Set α}
+    [∀ a, Decidable (a ∈ Xₗ)] [∀ a, Decidable (a ∈ Yₗ)] [∀ a, Decidable (a ∈ Xᵣ)] [∀ a, Decidable (a ∈ Yᵣ)]
+    (hXX : Xₗ ⫗ Xᵣ) (hYY : Yₗ ⫗ Yᵣ) (Aₗ : Matrix Xₗ Yₗ R) (Aᵣ : Matrix Xᵣ Yᵣ R)
+    (hI : I ⊆ Xₗ ∪ Xᵣ) (hIXₗ : I ∩ Xₗ ⊆ Xₗ) (hIXᵣ : I ∩ Xᵣ ⊆ Xᵣ) :
+    LinearIndepOn R (((⊞ Aₗ 0 0 Aᵣ).toMatrixUnionUnion)) hI.elem.range ↔
+      LinearIndepOn R Aₗ hIXₗ.elem.range ∧
+      LinearIndepOn R Aᵣ hIXᵣ.elem.range := by
+Matrix/LinearIndependence.lean:lemma Matrix.linearIndependent_iff_fromCols_zero {X Y R : Type*} [Ring R] (A : Matrix X Y R) (Y₀ : Type*) :
+    LinearIndependent R A ↔ LinearIndependent R (A ◫ (0 : Matrix X Y₀ R)) := by
+Matrix/LinearIndependence.lean:lemma linearIndepOn_matrix_elem_range_iff_subst (hXX : X = X') (hIX : I ⊆ X) (hAA : A = hXX ▸ A') :
+    have hIX' : I ⊆ X' := hXX ▸ hIX
+Matrix/LinearIndependence.lean:lemma linearIndepOn_matrix_inter_iff_subst (hXX : X = X') (hAA : A = hXX ▸ A') :
+    LinearIndepOn R A (X ↓∩ I) ↔ LinearIndepOn R A' (X' ↓∩ I) := by
+Matrix/LinearIndependence.lean:lemma Matrix.one_linearIndependent {α R : Type*} [DecidableEq α] [Ring R] : LinearIndependent R (1 : Matrix α α R) := by
+Matrix/LinearIndependence.lean:lemma IsUnit.linearIndependent_matrix {α R : Type*} [DecidableEq α] [Fintype α] [Ring R] {A : Matrix α α R} (hA : IsUnit A) :
+    LinearIndependent R A :=
+Matrix/LinearIndependence.lean:lemma Matrix.not_linearIndependent_of_rank_lt (A : Matrix X Y F) (hA : A.rank < #X) :
+    ¬ LinearIndependent F A :=
+Matrix/LinearIndependence.lean:lemma Matrix.not_linearIndependent_of_too_many_rows (A : Matrix X Y F) (hYX : #Y < #X) :
+    ¬ LinearIndependent F A :=
+Matrix/LinearIndependence.lean:lemma Matrix.exists_submatrix_rank (A : Matrix X Y F) :
+    ∃ r : Fin A.rank → X, (A.submatrix r id).rank = A.rank := by
+Matrix/LinearIndependence.lean:lemma Matrix.linearIndependent_iff_exists_submatrix_unit (A : Matrix X Y F) :
+    LinearIndependent F A ↔ ∃ f : X → Y, IsUnit (A.submatrix id f) := by
+Matrix/LinearIndependence.lean:lemma Matrix.linearIndependent_iff_exists_submatrix_det (A : Matrix X Y F) :
+    LinearIndependent F A ↔ ∃ f : X → Y, (A.submatrix id f).det ≠ 0 := by
+Matrix/PartialUnimodularity.lean:def Matrix.IsPartiallyUnimodular (A : Matrix X Y R) (k : ℕ) : Prop :=
+Matrix/PartialUnimodularity.lean:lemma Matrix.isTotallyUnimodular_iff_forall_isPartiallyUnimodular (A : Matrix X Y R) :
+    A.IsTotallyUnimodular ↔ ∀ k : ℕ, A.IsPartiallyUnimodular k :=
+Matrix/Pivoting.lean:def Matrix.longTableauPivot [One F] [SMul F F] [Div F] [Sub F] [DecidableEq X] (A : Matrix X Y F) (x : X) (y : Y) :
+    Matrix X Y F :=
+Matrix/Pivoting.lean:lemma Matrix.longTableauPivot_elem_pivot_eq_one [DecidableEq X] [DivisionSemiring F] [Sub F] (A : Matrix X Y F) {x : X} {y : Y}
+    (hAxy : A x y ≠ 0) :
+    (A.longTableauPivot x y) x y = 1 := by
+Matrix/Pivoting.lean:lemma Matrix.longTableauPivot_elem_in_pivot_col_eq_zero [DecidableEq X] [DivisionRing F] (A : Matrix X Y F) {x i : X} {y : Y}
+    (hix : i ≠ x) (hAxy : A x y ≠ 0) :
+    (A.longTableauPivot x y) i y = 0 := by
+Matrix/Pivoting.lean:lemma Matrix.longTableauPivot_elem_in_pivot_row_eq_zero [DecidableEq X] [NonAssocSemiring F] [Sub F] [Div F] (A : Matrix X Y F)
+    {x : X} {j : Y} (hAxj : A x j = 0) (y : Y) :
+    (A.longTableauPivot x y) x j = 0 := by
+Matrix/Pivoting.lean:lemma Matrix.longTableauPivot_elem_of_zero_in_pivot_row [DecidableEq X] [NonAssocRing F] [Div F] (A : Matrix X Y F)
+    {x i : X} {j : Y} (hix : i ≠ x) (hAxj : A x j = 0) (y : Y) :
+    (A.longTableauPivot x y) i j = A i j := by
+Matrix/Pivoting.lean:lemma Matrix.IsTotallyUnimodular.longTableauPivot [DecidableEq X] [Field F] {A : Matrix X Y F}
+    (hA : A.IsTotallyUnimodular) (x : X) (y : Y) (hAxy : A x y ≠ 0) :
+    (A.longTableauPivot x y).IsTotallyUnimodular := by
+Matrix/Pivoting.lean:lemma Matrix.longTableauPivot_linearIndepenOn [DecidableEq X] [Field F] (A : Matrix X Y F) {x : X} {y : Y}
+    (hAxy : A x y ≠ 0) (S : Set Y) :
+    LinearIndepOn F (A.longTableauPivot x y)ᵀ S ↔ LinearIndepOn F Aᵀ S := by
+Matrix/Pivoting.lean:def Matrix.shortTableauPivot [One F] [SMul F F] [Div F] [Zero F] [Sub F] [DecidableEq X] [DecidableEq Y]
+    (A : Matrix X Y F) (x : X) (y : Y) :
+    Matrix X Y F :=
+Matrix/Pivoting.lean:lemma Matrix.shortTableauPivot_eq [DivisionRing F] [DecidableEq X] [DecidableEq Y] (A : Matrix X Y F) (x : X) (y : Y) :
+    A.shortTableauPivot x y =
+    Matrix.of (fun i : X => fun j : Y =>
+      if i = x then
+        if j = y then
+          1 / A x y
+        else
+          (1 / A x y) * A x j
+      else
+        if j = y then
+          - A i y / A x y
+        else
+          A i j - A i y / A x y * A x j
+    ) := by
+Matrix/Pivoting.lean:lemma Matrix.IsTotallyUnimodular.shortTableauPivot [DecidableEq X] [DecidableEq Y] [Field F] {A : Matrix X Y F}
+    (hA : A.IsTotallyUnimodular) {x : X} {y : Y} (hAxy : A x y ≠ 0) :
+    (A.shortTableauPivot x y).IsTotallyUnimodular :=
+Matrix/Pivoting.lean:lemma Matrix.shortTableauPivot_zero {X' Y' : Type*} [DecidableEq X] [DecidableEq Y] [DecidableEq X'] [DivisionRing F]
+    (A : Matrix X Y F) (x : X') (y : Y) (f : X' → X) (g : Y' → Y) (hg : y ∉ g.range) (hAfg : ∀ i j, A (f i) (g j) = 0) :
+    ∀ i : X', ∀ j : Y', (A.shortTableauPivot (f x) y) (f i) (g j) = 0 := by
+Matrix/Pivoting.lean:lemma Matrix.shortTableauPivot_submatrix_zero_external_row [DivisionRing F] [DecidableEq X] [DecidableEq Y] (A : Matrix X Y F)
+    (x : X) (y : Y) {X' Y' : Type*} (f : X' → X) (g : Y' → Y) (hf : x ∉ f.range) (hg : y ∉ g.range) (hAg : ∀ j, A x (g j) = 0) :
+    (A.shortTableauPivot x y).submatrix f g = A.submatrix f g := by
+Matrix/Pivoting.lean:lemma Matrix.submatrix_shortTableauPivot [DecidableEq X] [DecidableEq Y] {X' Y' : Type*} [DecidableEq X'] [DecidableEq Y']
+    [DivisionRing F] {f : X' → X} {g : Y' → Y}
+    (A : Matrix X Y F) (hf : f.Injective) (hg : g.Injective) (x : X') (y : Y') :
+    (A.submatrix f g).shortTableauPivot x y = (A.shortTableauPivot (f x) (g y)).submatrix f g := by
+Matrix/Pivoting.lean:lemma shortTableauPivot_submatrix_det_abs_eq_div [LinearOrderedField F] {k : ℕ}
+    {A : Matrix (Fin k.succ) (Fin k.succ) F} {x y : Fin k.succ} (hAxy : A x y ≠ 0) :
+    ∃ f : Fin k → Fin k.succ, ∃ g : Fin k → Fin k.succ,
+      |((A.shortTableauPivot x y).submatrix f g).det| = |A.det| / |A x y| :=
+Matrix/Pivoting.lean:lemma Matrix.abs_det_eq_shortTableauPivot_submatrix_abs_det [LinearOrderedField F] {k : ℕ}
+    (A : Matrix (Fin k.succ) (Fin k.succ) F) {i j : Fin k.succ} (hAij : A i j = 1 ∨ A i j = -1) :
+    ∃ f : Fin k → Fin k.succ, ∃ g : Fin k → Fin k.succ,
+      |A.det| = |((A.shortTableauPivot i j).submatrix f g).det| := by
+Matrix/Signing.lean:def Matrix.IsSigningOf (A : Matrix X Y R) (U : Matrix X Y (ZMod n)) : Prop :=
+Matrix/Signing.lean:lemma Matrix.IsSigningOf.submatrix {X' Y' : Type*} {A : Matrix X Y R} {U : Matrix X Y (ZMod n)}
+    (hAU : A.IsSigningOf U) (f : X' → X) (g : Y' → Y) :
+    (A.submatrix f g).IsSigningOf (U.submatrix f g) :=
+Matrix/Signing.lean:lemma Matrix.IsSigningOf.reindex {X' Y' : Type*} {A : Matrix X Y R} {U : Matrix X Y (ZMod n)}
+    (hAU : A.IsSigningOf U) (f : X ≃ X') (g : Y ≃ Y') :
+    (A.reindex f g).IsSigningOf (U.reindex f g) :=
+Matrix/SubmoduleBasis.lean:lemma Basis.linearIndepOn_in_submodule (B : Basis G R (Submodule.span R A.range)) (hAI : LinearIndepOn R A hIX.elem.range) :
+    LinearIndepOn R (fun x : X => fun g : G => B.repr ⟨A x, in_submoduleSpan_range A x⟩ g) hIX.elem.range := by
+Matrix/SubmoduleBasis.lean:lemma Basis.linearIndepOn_of_in_submodule (B : Basis G R (Submodule.span R A.range))
+    (hBI : LinearIndepOn R (fun x : X => fun g : G => B.repr ⟨A x, in_submoduleSpan_range A x⟩ g) hIX.elem.range) :
+    LinearIndepOn R A hIX.elem.range := by
+Matrix/Support.lean:def Matrix.support (A : Matrix X Y R) : Matrix X Y Z2 :=
+Matrix/Support.lean:lemma Matrix.support_transpose (A : Matrix X Y R) :
+    A.support.transpose = A.transpose.support :=
+Matrix/Support.lean:lemma Matrix.support_submatrix (A : Matrix X Y R) {X' Y' : Type*} (f : X' → X) (g : Y' → Y) :
+    A.support.submatrix f g = (A.submatrix f g).support :=
+Matrix/Support.lean:lemma Matrix.support_Z2 (A : Matrix X Y Z2) : A.support = A := by
+Matrix/Support.lean:lemma Matrix.IsTotallyUnimodular.abs_eq_support_val {A : Matrix X Y ℚ} (hA : A.IsTotallyUnimodular) :
+    ∀ i : X, ∀ j : Y, |A i j| = (A.support i j).val := by
+Matrix/Support.lean:lemma Matrix.IsTotallyUnimodular.abs_cast_eq_support {A : Matrix X Y ℚ} (hA : A.IsTotallyUnimodular) :
+    ∀ i : X, ∀ j : Y, |A i j|.cast = A.support i j := by
+Matrix/Support.lean:lemma Matrix.IsTotallyUnimodular.apply_abs_eq_one {A : Matrix X Y ℚ} (hA : A.IsTotallyUnimodular)
+    {i : X} {j : Y} (hAij : A.support i j = 1) :
+    |A i j| = 1 := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.empty_X_isTotallyUnimodular {X Y : Type*} [IsEmpty X] {R : Type*} [CommRing R] (A : Matrix X Y R) :
+    A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.empty_Y_isTotallyUnimodular {X Y : Type*} [IsEmpty Y] {R : Type*} [CommRing R] (A : Matrix X Y R) :
+    A.IsTotallyUnimodular :=
+Matrix/TotalUnimodularity.lean:lemma Matrix.overZ2_isTotallyUnimodular {X Y : Type*} (A : Matrix X Y Z2) : A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.overZ3_isTotallyUnimodular {X Y : Type*} (A : Matrix X Y Z3) : A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.det {X Y Z R : Type*} [CommRing R] [DecidableEq Z] [Fintype Z] {A : Matrix X Y R}
+    (hA : A.IsTotallyUnimodular) (f : Z → X) (g : Z → Y) :
+    (A.submatrix f g).det ∈ Set.range SignType.cast := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.neg {X Y R : Type*} [CommRing R] {A : Matrix X Y R} (hA : A.IsTotallyUnimodular) :
+    (-A).IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.det_eq_map_ratFloor_det {X : Type*} [DecidableEq X] [Fintype X] {A : Matrix X X ℚ}
+    (hA : A.IsTotallyUnimodular) :
+    A.det = (A.map Rat.floor).det := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.map_ratFloor {X Y : Type*} {A : Matrix X Y ℚ} (hA : A.IsTotallyUnimodular) :
+    (A.map Rat.floor).IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.comp_rows {X Y X' R : Type*} [CommRing R] {A : Matrix X Y R}
+    (hA : A.IsTotallyUnimodular) (e : X' → X) :
+    Matrix.IsTotallyUnimodular (A ∘ e) := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.comp_cols {X Y Y' R : Type*} [CommRing R] {A : Matrix X Y R}
+    (hA : A.IsTotallyUnimodular) (e : Y' → Y) :
+    Matrix.IsTotallyUnimodular (A · ∘ e) := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.fromRows_comm {X₁ X₂ Y R : Type*} [CommRing R] {A₁ : Matrix X₁ Y R} {A₂ : Matrix X₂ Y R}
+    (hAA : (A₁ ⊟ A₂).IsTotallyUnimodular) :
+    (A₂ ⊟ A₁).IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.fromCols_comm {X Y₁ Y₂ R : Type*} [CommRing R] {A₁ : Matrix X Y₁ R} {A₂ : Matrix X Y₂ R}
+    (hAA : (A₁ ◫ A₂).IsTotallyUnimodular) :
+    (A₂ ◫ A₁).IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.replicateRow0_fromRows_isTotallyUnimodular_iff {X Y X' R : Type*} [CommRing R] (A : Matrix X Y R) :
+    ((Matrix.replicateRow X' 0) ⊟ A).IsTotallyUnimodular ↔ A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.replicateCol0_fromCols_isTotallyUnimodular_iff {X Y Y' R : Type*} [CommRing R] (A : Matrix X Y R) :
+    ((Matrix.replicateCol Y' 0) ◫ A).IsTotallyUnimodular ↔ A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.fromRows_zero {X Y R : Type*} (X' : Type*) [CommRing R]
+    {A : Matrix X Y R} (hA : A.IsTotallyUnimodular) :
+    (@Matrix.fromRows R X X' Y A 0).IsTotallyUnimodular :=
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.zero_fromRows {X Y R : Type*} (X' : Type*) [CommRing R]
+    {A : Matrix X Y R} (hA : A.IsTotallyUnimodular) :
+    (@Matrix.fromRows R X' X Y 0 A).IsTotallyUnimodular :=
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.fromCols_zero {X Y R : Type*} (Y' : Type*) [CommRing R]
+    {A : Matrix X Y R} (hA : A.IsTotallyUnimodular) :
+    (@Matrix.fromCols R X Y Y' A 0).IsTotallyUnimodular :=
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.zero_fromCols {X Y R : Type*} (Y' : Type*) [CommRing R]
+    {A : Matrix X Y R} (hA : A.IsTotallyUnimodular) :
+    (@Matrix.fromCols R X Y' Y 0 A).IsTotallyUnimodular :=
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.mul_rows {X Y R : Type*} [DecidableEq X] [CommRing R] {A : Matrix X Y R}
+    (hA : A.IsTotallyUnimodular) {q : X → R} (hq : ∀ i : X, q i ∈ SignType.cast.range) :
+    (Matrix.of (fun i : X => fun j : Y => A i j * q i)).IsTotallyUnimodular := by
+Matrix/TotalUnimodularity.lean:lemma Matrix.IsTotallyUnimodular.mul_cols {X Y R : Type*} [DecidableEq Y] [CommRing R] {A : Matrix X Y R}
+    (hA : A.IsTotallyUnimodular) {q : Y → R} (hq : ∀ j : Y, q j ∈ SignType.cast.range) :
+    (Matrix.of (fun i : X => fun j : Y => A i j * q j)).IsTotallyUnimodular :=
+Matrix/TotalUnimodularity.lean:lemma Matrix.fromBlocks_isTotallyUnimodular [DecidableEq Y₁] [DecidableEq Y₂] {A₁ : Matrix X₁ Y₁ R} {A₂ : Matrix X₂ Y₂ R}
+    (hA₁ : A₁.IsTotallyUnimodular) (hA₂ : A₂.IsTotallyUnimodular) :
+    (Matrix.fromBlocks A₁ 0 0 A₂).IsTotallyUnimodular :=
+Matrix/TotalUnimodularityTest.lean:def Matrix.testTotallyUnimodular {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℚ) : Bool :=
+Matrix/TotalUnimodularityTest.lean:lemma Matrix.isTotallyUnimodular_of_aux_le {m n : ℕ} {A : Matrix (Fin m) (Fin n) ℚ}
+    (hA : ∀ k : ℕ, k ≤ m → ∀ x : Fin k → Fin m, ∀ y : Fin k → Fin n, (A.submatrix x y).det ∈ SignType.cast.range) :
+    A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularityTest.lean:lemma Matrix.isTotallyUnimodular_of_testTotallyUnimodular {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℚ) :
+    A.testTotallyUnimodular → A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularityTest.lean:lemma Matrix.testTotallyUnimodular_eq_isTotallyUnimodular {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℚ) :
+    A.testTotallyUnimodular ↔ A.IsTotallyUnimodular := by
+Matrix/TotalUnimodularityTest.lean:lemma filter_length_card {n : ℕ} (s : Finset (Fin n)) : ((List.finRange n).filter (· ∈ s)).length = s.card := by
+Matrix/TotalUnimodularityTest.lean:def Matrix.testTotallyUnimodularFast {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℚ) : Bool :=
+Matrix/TotalUnimodularityTest.lean:lemma range_of_list_get {α : Type*} [DecidableEq α] {n : ℕ} {s : List α} (hn : n = s.length) :
+    (fun x : Fin n => s[x]).range = s.toFinset := by
+Matrix/TotalUnimodularityTest.lean:lemma Matrix.submatrix_eq_submatrix_reindex {r c n o p q α : Type*}
+    [DecidableEq r] [Fintype r] [DecidableEq c] [Fintype c] [DecidableEq n] [Fintype n]
+    [DecidableEq o] [Fintype o] [DecidableEq p] [Fintype p] [DecidableEq q] [Fintype q]
+    {f₁ : n → r} {g₁ : o → c} {f₂ : p → r} {g₂ : q → c}
+    (A : Matrix r c α) (hf₁ : f₁.Injective) (hg₁ : g₁.Injective) (hf₂ : f₂.Injective) (hg₂ : g₂.Injective)
+    (hff : f₁.range = f₂.range) (hgg : g₁.range = g₂.range) :
+    ∃ e₁ : p ≃ n, ∃ e₂ : q ≃ o, (A.submatrix f₁ g₁) = (A.submatrix f₂ g₂).reindex e₁ e₂ := by
+Matrix/TotalUnimodularityTest.lean:lemma Matrix.isTotallyUnimodular_of_testTotallyUnimodularFast {m n : ℕ} (A : Matrix (Fin m) (Fin n) ℚ) :
+    A.testTotallyUnimodularFast → A.IsTotallyUnimodular := by
+Matroid/Basic.lean:lemma Matroid.IsBase.not_ssubset_indep (hMG : M.IsBase G) (hMI : M.Indep I) : ¬(G ⊂ I) :=
+Matroid/Basic.lean:lemma Matroid.Indep.finite_of_finite_base (hMI : M.Indep I) (hMG : M.IsBase G) (hG : Finite G) :
+    Finite I := by
+Matroid/Duality.lean:def StandardRepr.dual [DivisionRing R] (S : StandardRepr α R) : StandardRepr α R where
+  X := S.Y
+Matroid/Duality.lean:lemma StandardRepr.dual_dual [DivisionRing R] (S : StandardRepr α R) : S✶✶ = S := by
+Matroid/Duality.lean:lemma StandardRepr.dual_indices_union_eq [DivisionRing R] (S : StandardRepr α R) : S✶.X ∪ S✶.Y = S.X ∪ S.Y :=
+Matroid/Duality.lean:lemma StandardRepr.dual_ground [DivisionRing R] (S : StandardRepr α R) : S✶.toMatroid.E = S.toMatroid.E :=
+Matroid/Duality.lean:def StandardRepr.equivX {S S' : StandardRepr α R} (h : S.X = S'.X) :
+    S'.X ≃ S.X :=
+Matroid/Duality.lean:def StandardRepr.equivUnion {S S' : StandardRepr α R} (h : S.X = S'.X) (hY : S.Y = S'.Y) :
+    ↑ (S'.X ∪ S'.Y) ≃ ↑ (S.X ∪ S.Y) :=
+Matroid/Duality.lean:def StandardRepr.domainEquiv {S S' : StandardRepr α R} (h : S.X = S'.X ∧ S.Y = S'.Y) :
+    ↑(S'.X ∪ S'.Y) ≃ ↑(S.X ∪ S.Y) :=
+Matroid/Duality.lean:def VectorsWithOnlySomeIndexes (R: Type*)[Field R] (E : Set α)(S: Set α) : Submodule R (E → R) where
+  -- The set of vectors v where v(a) = 0 for all a ∉ S
+  carrier := {v : E → R | ∀ a: E, (a: α) ∉ S → v a = 0}
+Matroid/Duality.lean:def rowSpace (R: Type*) [Field R] (S : StandardRepr α R) : Submodule R (↑S.toMatroid.E → R) :=
+Matroid/Duality.lean:def colSpace (R: Type*) [Field R] (S : StandardRepr α R) : Submodule R (↑S.X → R) :=
+Matroid/FromMatrix.lean:def Matrix.IndepCols [Semiring R] (A : Matrix X Y R) (I : Set α) : Prop :=
+Matroid/FromMatrix.lean:lemma Matrix.indepCols_iff_elem [Semiring R] (A : Matrix X Y R) (I : Set α) :
+    A.IndepCols I ↔ ∃ hI : I ⊆ Y, LinearIndepOn R Aᵀ hI.elem.range := by
+Matroid/FromMatrix.lean:lemma Matrix.indepCols_iff_submatrix [Semiring R] (A : Matrix X Y R) (I : Set α) :
+    A.IndepCols I ↔ ∃ hI : I ⊆ Y, LinearIndependent R (A.submatrix id hI.elem)ᵀ :=
+Matroid/FromMatrix.lean:lemma Matrix.indepCols_iff_submatrix' [Semiring R] (A : Matrix X Y R) (I : Set α) :
+    A.IndepCols I ↔ ∃ hI : I ⊆ Y, LinearIndependent R (Aᵀ.submatrix hI.elem id) :=
+Matroid/FromMatrix.lean:theorem Matrix.indepCols_empty [Semiring R] (A : Matrix X Y R) :
+    A.IndepCols ∅ :=
+Matroid/FromMatrix.lean:theorem Matrix.indepCols_subset [Semiring R] (A : Matrix X Y R) (I J : Set α) (hAJ : A.IndepCols J) (hIJ : I ⊆ J) :
+    A.IndepCols I :=
+Matroid/FromMatrix.lean:theorem Matrix.indepCols_aug [DivisionRing R] (A : Matrix X Y R) (I J : Set α)
+    (hAI : A.IndepCols I) (hAI' : ¬Maximal A.IndepCols I) (hAJ : Maximal A.IndepCols J) :
+    ∃ x ∈ J \ I, A.IndepCols (x ᕃ I) := by
+Matroid/FromMatrix.lean:lemma linearIndepOn_sUnion_of_directedOn [Semiring R] {A : Matrix Y X R} {s : Set (Set α)}
+    (hs : DirectedOn (· ⊆ ·) s)
+    (hA : ∀ a ∈ s, LinearIndepOn R A (Y ↓∩ a)) :
+    LinearIndepOn R A (Y ↓∩ (⋃₀ s)) := by
+Matroid/FromMatrix.lean:theorem Matrix.indepCols_maximal [Semiring R] (A : Matrix X Y R) (I : Set α) :
+    Matroid.ExistsMaximalSubsetProperty A.IndepCols I :=
+Matroid/FromMatrix.lean:def Matrix.toIndepMatroid [DivisionRing R] (A : Matrix X Y R) : IndepMatroid α where
+  E := Y
+Matroid/FromMatrix.lean:def Matrix.toMatroid [DivisionRing R] (A : Matrix X Y R) : Matroid α :=
+Matroid/FromMatrix.lean:lemma Matrix.toMatroid_E [DivisionRing R] (A : Matrix X Y R) : A.toMatroid.E = Y :=
+Matroid/FromMatrix.lean:lemma Matrix.toMatroid_indep_iff [DivisionRing R] (A : Matrix X Y R) (I : Set α) :
+    A.toMatroid.Indep I ↔ I ⊆ Y ∧ LinearIndepOn R Aᵀ (Y ↓∩ I) := by
+Matroid/FromMatrix.lean:lemma Matrix.toMatroid_indep_iff_elem [DivisionRing R] (A : Matrix X Y R) (I : Set α) :
+    A.toMatroid.Indep I ↔ ∃ hI : I ⊆ Y, LinearIndepOn R Aᵀ hI.elem.range :=
+Matroid/FromMatrix.lean:lemma Matrix.toMatroid_indep_iff_submatrix [DivisionRing R] (A : Matrix X Y R) (I : Set α) :
+    A.toMatroid.Indep I ↔ ∃ hI : I ⊆ Y, LinearIndependent R (Aᵀ.submatrix hI.elem id) :=
+Matroid/FromMatrix.lean:lemma Matrix.fromRows_zero_reindex_toMatroid [DivisionRing R] {G : Set α} [Fintype G]
+    [∀ a, Decidable (a ∈ G)] [∀ a, Decidable (a ∈ Y)]
+    (A : Matrix G (G ⊕ (Y \ G).Elem) R) (hGY : G ⊆ Y) {Z : Type*} (e : G ⊕ Z ≃ X) :
+    (Matrix.of (fun i : G => A i ∘ Subtype.toSum)).toMatroid =
+    (Matrix.of ((A ⊟ 0).reindex e hGY.equiv)).toMatroid := by
+Matroid/FromMatrix.lean:lemma Matrix.toMatroid_isFinitary [DivisionRing R] (A : Matrix X Y R) : A.toMatroid.Finitary := by
+Matroid/Graphicness.lean:def IsIncidenceMatrixColumn {m : Type*} [DecidableEq m] (v : m → ℚ) : Prop :=
+Matroid/Graphicness.lean:def Matrix.IsGraphic {m n : Type*} [DecidableEq m] (A : Matrix m n ℚ) : Prop :=
+Matroid/Graphicness.lean:lemma Matrix.IsGraphic.elem_in_signTypeCastRange {m n : Type*} [DecidableEq m] {A : Matrix m n ℚ}
+    (hA : A.IsGraphic) (i : m) (j : n) :
+    A i j ∈ SignType.cast.range :=
+Matroid/Graphicness.lean:lemma Matrix.IsGraphic.col_zero_or_two_nonzeros {m n : Type*} [DecidableEq m] {A : Matrix m n ℚ} (hA : A.IsGraphic) (y : n) :
+    ((A · y) = 0) ∨ (∃ i₁ i₂ : m, i₁ ≠ i₂ ∧ ∀ i : m, i ≠ i₁ → i ≠ i₂ → (A · y) i = 0) :=
+Matroid/Graphicness.lean:lemma Matrix.IsGraphic.cols_sum_zero {m n : Type*} [Fintype n] [Fintype m] [DecidableEq m] {A : Matrix m n ℚ}
+    (hA : A.IsGraphic) :
+    ∑ x : m, A x = 0 := by
+Matroid/Graphicness.lean:def Matroid.IsGraphic (M : Matroid α) : Prop :=
+Matroid/Graphicness.lean:def Matroid.IsCographic (M : Matroid α) : Prop :=
+Matroid/Graphicness.lean:lemma Matrix.IsGraphic.isTotallyUnimodular {X Y : Set α} {A : Matrix X Y ℚ} (hA : A.IsGraphic) :
+    A.IsTotallyUnimodular := by
+Matroid/Graphicness.lean:theorem Matroid.IsGraphic.isRegular {M : Matroid α} (hM : M.IsGraphic) :
+    M.IsRegular := by
+Matroid/R10.lean:def matrixR10auxZ2 : Matrix (Fin 5) (Fin 5) Z2 := !![
+Matroid/R10.lean:def matrixR10auxRat : Matrix (Fin 5) (Fin 5) ℚ :=
+Matroid/R10.lean:lemma matrixR10auxRat_isTotallyUnimodular : matrixR10auxRat.IsTotallyUnimodular :=
+Matroid/R10.lean:def matrixR10Z2 : Matrix { x : Fin 10 | x.val < 5 } { x : Fin 10 | 5 ≤ x.val } Z2 :=
+Matroid/R10.lean:def matrixR10Rat : Matrix { x : Fin 10 | x.val < 5 } { x : Fin 10 | 5 ≤ x.val } ℚ :=
+Matroid/R10.lean:lemma matrixR10Rat_eq_coe_matrixR10auxRat :
+    matrixR10Rat = matrixR10auxRat.submatrix (·.val) (⟨·.val.val - 5, by omega⟩) := by
+Matroid/R10.lean:def matroidR10 : StandardRepr (Fin 10) Z2 where
+  X := { x : Fin 10 | x.val < 5 }
+Matroid/R10.lean:theorem matroidR10.isRegular : matroidR10.toMatroid.IsRegular := by
+Matroid/Regularity.lean:def Matroid.IsRegular {α : Type*} (M : Matroid α) : Prop :=
+Matroid/Regularity.lean:def Matrix.IsTuSigningOf {X Y : Type*} (A : Matrix X Y ℚ) (U : Matrix X Y Z2) : Prop :=
+Matroid/Regularity.lean:def Matrix.HasTuSigning {X Y : Type*} (U : Matrix X Y Z2) : Prop :=
+Matroid/Regularity.lean:lemma Matrix.IsTotallyUnimodular.isTuSigningOf_support {X Y : Type*} {A : Matrix X Y ℚ} (hA : A.IsTotallyUnimodular) :
+    A.IsTuSigningOf A.support :=
+Matroid/Regularity.lean:lemma Matrix.isTuSigningOf_iff {X Y : Type*} (A : Matrix X Y ℚ) (U : Matrix X Y Z2) :
+    A.IsTuSigningOf U ↔ A.IsTotallyUnimodular ∧ A.support = U := by
+Matroid/Regularity.lean:lemma Matroid.isRegular_mapEquiv_iff {α β : Type*} (M : Matroid α) (e : α ≃ β) : (M.mapEquiv e).IsRegular ↔ M.IsRegular := by
+Matroid/Regularity.lean:lemma Matroid.IsRegular.isBinary {M : Matroid α} (hM : M.IsRegular) :
+    ∃ X Y : Set α, ∃ A : Matrix X Y Z2, A.toMatroid = M := by
+Matroid/Regularity.lean:lemma StandardRepr.toMatroid_isRegular_iff_hasTuSigning (S : StandardRepr α Z2) [Finite S.X] :
+    S.toMatroid.IsRegular ↔ S.B.HasTuSigning := by
+Matroid/StandardRepresentation.lean:def StandardRepr.toFull [Zero R] [One R] (S : StandardRepr α R) : Matrix S.X (S.X ∪ S.Y).Elem R :=
+Matroid/StandardRepresentation.lean:lemma standardRepr_eq_standardRepr_of_B_eq_B [DivisionRing R] {S₁ S₂ : StandardRepr α R}
+    (hX : S₁.X = S₂.X) (hY : S₁.Y = S₂.Y) (hB : S₁.B = hX ▸ hY ▸ S₂.B) :
+    S₁ = S₂ := by
+Matroid/StandardRepresentation.lean:def StandardRepr.toMatroid [DivisionRing R] (S : StandardRepr α R) : Matroid α :=
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_E [DivisionRing R] (S : StandardRepr α R) :
+    S.toMatroid.E = S.X ∪ S.Y :=
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_indep_iff [DivisionRing R] (S : StandardRepr α R) (I : Set α) :
+    S.toMatroid.Indep I ↔
+    I ⊆ S.X ∪ S.Y ∧ LinearIndepOn R ((1 ◫ S.B) · ∘ Subtype.toSum)ᵀ ((S.X ∪ S.Y) ↓∩ I) := by
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_indep_iff_elem [DivisionRing R] (S : StandardRepr α R) (I : Set α) :
+    S.toMatroid.Indep I ↔
+    ∃ hI : I ⊆ S.X ∪ S.Y, LinearIndepOn R ((1 ◫ S.B)ᵀ ∘ Subtype.toSum) hI.elem.range :=
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_indep_iff_submatrix [DivisionRing R] (S : StandardRepr α R) (I : Set α) :
+    S.toMatroid.Indep I ↔
+    ∃ hI : I ⊆ S.X ∪ S.Y, LinearIndependent R ((1 ◫ S.B).submatrix id (Subtype.toSum ∘ hI.elem))ᵀ :=
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_indep_X [DivisionRing R] (S : StandardRepr α R) :
+    S.toMatroid.Indep S.X := by
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_isBase_X [Field R] (S : StandardRepr α R) [Fintype S.X] :
+    S.toMatroid.IsBase S.X := by
+Matroid/StandardRepresentation.lean:lemma StandardRepr.finite_X_of_toMatroid_rankFinite [DivisionRing R] (S : StandardRepr α R) (hS : S.toMatroid.RankFinite) :
+    Finite S.X := by
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_rankFinite_of_finite_X [Field R] (S : StandardRepr α R) [Fintype S.X] :
+    S.toMatroid.RankFinite :=
+Matroid/StandardRepresentation.lean:lemma StandardRepr.toMatroid_rankFinite_iff_finite_X [Field R] (S : StandardRepr α R) :
+    S.toMatroid.RankFinite ↔ Finite S.X :=
+Matroid/StandardRepresentation.lean:lemma Matrix.longTableauPivot_toMatroid [Field R] {X Y : Set α} (A : Matrix X Y R) {x : X} {y : Y} (hAxy : A x y ≠ 0) :
+    (A.longTableauPivot x y).toMatroid = A.toMatroid := by
+Matroid/StandardRepresentation.lean:lemma Matrix.exists_standardRepr_isBase [DivisionRing R] {X Y G : Set α}
+    (A : Matrix X Y R) (hAG : A.toMatroid.IsBase G) :
+    ∃ S : StandardRepr α R, S.X = G ∧ S.toMatroid = A.toMatroid := by
+Matroid/StandardRepresentation.lean:lemma Matrix.exists_standardRepr [DivisionRing R] {X Y : Set α} (A : Matrix X Y R) :
+    ∃ S : StandardRepr α R, S.toMatroid = A.toMatroid := by
+Matroid/StandardRepresentation.lean:lemma Matrix.exists_standardRepr_isBase_isTotallyUnimodular [Field R] {X Y G : Set α} [Fintype G]
+    (A : Matrix X Y R) (hAG : A.toMatroid.IsBase G) (hA : A.IsTotallyUnimodular) :
+    ∃ S : StandardRepr α R, S.X = G ∧ S.toMatroid = A.toMatroid ∧ S.B.IsTotallyUnimodular := by
+Matroid/StandardRepresentation.lean:lemma ext_standardRepr_of_same_matroid_same_X {S₁ S₂ : StandardRepr α Z2} [Fintype S₁.X]
+    (hSS : S₁.toMatroid = S₂.toMatroid) (hXX : S₁.X = S₂.X) :
+    S₁ = S₂ := by
+Matroid/StandardRepresentation.lean:lemma support_eq_support_of_same_matroid_same_X {F₁ : Type u₁} {F₂ : Type u₂} {α : Type max u₁ u₂ v}
+      [DecidableEq α] [DecidableEq F₁] [DecidableEq F₂] [Field F₁] [Field F₂]
+    {S₁ : StandardRepr α F₁} {S₂ : StandardRepr α F₂} [Fintype S₂.X]
+    (hSS : S₁.toMatroid = S₂.toMatroid) (hXX : S₁.X = S₂.X) :
+    let hYY : S₁.Y = S₂.Y := right_eq_right_of_union_eq_union hXX S₁.hXY S₂.hXY (congr_arg Matroid.E hSS)
+Matroid/Sum1.lean:def matrixSum1 {R : Type*} [Zero R] {Xₗ Yₗ Xᵣ Yᵣ : Type*}
+    (Aₗ : Matrix Xₗ Yₗ R) (Aᵣ : Matrix Xᵣ Yᵣ R) :
+    Matrix (Xₗ ⊕ Xᵣ) (Yₗ ⊕ Yᵣ) R :=
+Matroid/Sum1.lean:def Matroid.IsSum1of (M : Matroid α) (Mₗ Mᵣ : Matroid α) : Prop :=
+Matroid/Sum1.lean:lemma standardReprSum1_disjoint_X {Sₗ Sᵣ S : StandardRepr α Z2} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum1 hXY hYX = some S) :
+    Sₗ.X ⫗ Sᵣ.X := by
+Matroid/Sum1.lean:lemma standardReprSum1_disjoint_Y {Sₗ Sᵣ S : StandardRepr α Z2} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum1 hXY hYX = some S) :
+    Sₗ.Y ⫗ Sᵣ.Y := by
+Matroid/Sum1.lean:lemma standardReprSum1_X_eq {Sₗ Sᵣ S : StandardRepr α Z2} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum1 hXY hYX = some S) :
+    S.X = Sₗ.X ∪ Sᵣ.X := by
+Matroid/Sum1.lean:lemma standardReprSum1_Y_eq {Sₗ Sᵣ S : StandardRepr α Z2} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum1 hXY hYX = some S) :
+    S.Y = Sₗ.Y ∪ Sᵣ.Y := by
+Matroid/Sum1.lean:lemma Matroid.IsSum1of.E_eq {M Mₗ Mᵣ : Matroid α} (hMMM : M.IsSum1of Mₗ Mᵣ) :
+    M.E = Mₗ.E ∪ Mᵣ.E := by
+Matroid/Sum1.lean:lemma standardReprSum1_disjoint_E {Sₗ Sᵣ S : StandardRepr α Z2} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum1 hXY hYX = some S) :
+    Sₗ.toMatroid.E ⫗ Sᵣ.toMatroid.E := by
+Matroid/Sum1.lean:lemma Matroid.IsSum1of.disjoint_E {M Mₗ Mᵣ : Matroid α} (hMMM : M.IsSum1of Mₗ Mᵣ) :
+    Mₗ.E ⫗ Mᵣ.E := by
+Matroid/Sum1.lean:lemma standardReprSum1_eq_disjointSum {Sₗ Sᵣ S : StandardRepr α Z2} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum1 hXY hYX = some S) :
+    S.toMatroid = (standardReprSum1_disjoint_E hS).matroidSum := by
+Matroid/Sum1.lean:theorem Matroid.IsSum1of.eq_disjointSum {M Mₗ Mᵣ : Matroid α} (hMMM : M.IsSum1of Mₗ Mᵣ) :
+    M = hMMM.disjoint_E.matroidSum := by
+Matroid/Sum1.lean:lemma standardReprSum1_hasTuSigning {Sₗ Sᵣ S : StandardRepr α Z2} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hSₗ : Sₗ.B.HasTuSigning) (hSᵣ : Sᵣ.B.HasTuSigning)
+    (hS : standardReprSum1 hXY hYX = some S) :
+    S.B.HasTuSigning := by
+Matroid/Sum1.lean:theorem Matroid.IsSum1of.isRegular {M Mₗ Mᵣ : Matroid α}
+    (hMMM : M.IsSum1of Mₗ Mᵣ) (hM : M.RankFinite) (hMₗ : Mₗ.IsRegular) (hMᵣ : Mᵣ.IsRegular) :
+    M.IsRegular := by
+Matroid/Sum2.lean:def matrixSum2 {R : Type*} [Semiring R] {Xₗ Yₗ Xᵣ Yᵣ : Type*}
+    (Aₗ : Matrix Xₗ Yₗ R) (r : Yₗ → R) (Aᵣ : Matrix Xᵣ Yᵣ R) (c : Xᵣ → R) :
+    Matrix (Xₗ ⊕ Xᵣ) (Yₗ ⊕ Yᵣ) R :=
+Matroid/Sum2.lean:def Matroid.IsSum2of {α : Type*} [DecidableEq α] (M : Matroid α) (Mₗ Mᵣ : Matroid α) : Prop :=
+Matroid/Sum2.lean:lemma standardReprSum2_X_eq {Sₗ Sᵣ S : StandardRepr α Z2} {x y : α}
+    {hx : Sₗ.X ∩ Sᵣ.X = {x}} {hy : Sₗ.Y ∩ Sᵣ.Y = {y}} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum2 hx hy hXY hYX = some S) :
+    S.X = Sₗ.X ∪ Sᵣ.X := by
+Matroid/Sum2.lean:lemma standardReprSum2_Y_eq {Sₗ Sᵣ S : StandardRepr α Z2} {x y : α}
+    {hx : Sₗ.X ∩ Sᵣ.X = {x}} {hy : Sₗ.Y ∩ Sᵣ.Y = {y}} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum2 hx hy hXY hYX = some S) :
+    S.Y = Sₗ.Y ∪ Sᵣ.Y := by
+Matroid/Sum2.lean:lemma standardReprSum2_hasTuSigning {Sₗ Sᵣ S : StandardRepr α Z2} {x y : α}
+    {hx : Sₗ.X ∩ Sᵣ.X = {x}} {hy : Sₗ.Y ∩ Sᵣ.Y = {y}} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hSₗ : Sₗ.B.HasTuSigning) (hSᵣ : Sᵣ.B.HasTuSigning) (hS : standardReprSum2 hx hy hXY hYX = some S) :
+    S.B.HasTuSigning := by
+Matroid/Sum2.lean:lemma Matroid.IsSum2of.E_eq (M : Matroid α) (Mₗ Mᵣ : Matroid α) (hMMM : M.IsSum2of Mₗ Mᵣ) :
+    M.E = Mₗ.E ∪ Mᵣ.E := by
+Matroid/Sum2.lean:theorem Matroid.IsSum2of.isRegular {M Mₗ Mᵣ : Matroid α}
+    (hMMM : M.IsSum2of Mₗ Mᵣ) (hM : M.RankFinite) (hMₗ : Mₗ.IsRegular) (hMᵣ : Mᵣ.IsRegular) :
+    M.IsRegular := by
+Matroid/Sum3.lean:def blocksToMatrixSum3 {Xₗ Yₗ Xᵣ Yᵣ R : Type*}
+    (Bₗ : Matrix ((Xₗ ⊕ Unit) ⊕ Fin 2) ((Yₗ ⊕ Fin 2) ⊕ Unit) R)
+    (Bᵣ : Matrix (Unit ⊕ (Fin 2 ⊕ Xᵣ)) (Fin 2 ⊕ (Unit ⊕ Yᵣ)) R) :
+    MatrixSum3 Xₗ Yₗ Xᵣ Yᵣ R where
+  Aₗ  := Bₗ.toBlocks₁₁
+Matroid/Sum3.lean:def undrop3 {Z : Set α} {z₀ z₁ z₂ : Z} (i : Z.drop3 z₀ z₁ z₂) : Z :=
+Matroid/Sum3.lean:def Matrix.toBlockSummandₗ {Xₗ Yₗ : Set α} {R : Type*} (Bₗ : Matrix Xₗ Yₗ R) (x₀ x₁ x₂ : Xₗ) (y₀ y₁ y₂ : Yₗ) :
+    Matrix ((Xₗ.drop3 x₀ x₁ x₂ ⊕ Unit) ⊕ Fin 2) ((Yₗ.drop3 y₀ y₁ y₂ ⊕ Fin 2) ⊕ Unit) R :=
+Matroid/Sum3.lean:def Matrix.toBlockSummandᵣ {Xᵣ Yᵣ : Set α} {R : Type*} (Bᵣ : Matrix Xᵣ Yᵣ R) (x₀ x₁ x₂ : Xᵣ) (y₀ y₁ y₂ : Yᵣ) :
+    Matrix (Unit ⊕ (Fin 2 ⊕ Xᵣ.drop3 x₀ x₁ x₂)) (Fin 2 ⊕ (Unit ⊕ Yᵣ.drop3 y₀ y₁ y₂)) R :=
+Matroid/Sum3.lean:def Matrix.toMatrixDropUnionDrop {Xₗ Yₗ Xᵣ Yᵣ : Set α} {R : Type*}
+    [∀ a, Decidable (a ∈ Xₗ)] [∀ a, Decidable (a ∈ Yₗ)] [∀ a, Decidable (a ∈ Xᵣ)] [∀ a, Decidable (a ∈ Yᵣ)]
+    {x₀ₗ x₁ₗ x₂ₗ : Xₗ} {y₀ₗ y₁ₗ y₂ₗ : Yₗ} {x₀ᵣ x₁ᵣ x₂ᵣ : Xᵣ} {y₀ᵣ y₁ᵣ y₂ᵣ : Yᵣ}
+    (A : Matrix
+      ((Xₗ.drop3 x₀ₗ x₁ₗ x₂ₗ ⊕ Unit) ⊕ (Fin 2 ⊕ Xᵣ.drop3 x₀ᵣ x₁ᵣ x₂ᵣ))
+      ((Yₗ.drop3 y₀ₗ y₁ₗ y₂ₗ ⊕ Fin 2) ⊕ (Unit ⊕ Yᵣ.drop3 y₀ᵣ y₁ᵣ y₂ᵣ))
+      R) :
+    Matrix (Xₗ.drop2 x₀ₗ x₁ₗ ∪ Xᵣ.drop1 x₂ᵣ).Elem (Yₗ.drop1 y₂ₗ ∪ Yᵣ.drop2 y₀ᵣ y₁ᵣ).Elem R :=
+Matroid/Sum3.lean:lemma standardReprSum3_X_eq {Sₗ Sᵣ S : StandardRepr α Z2} {x₀ x₁ x₂ y₀ y₁ y₂ : α}
+    {hXX : Sₗ.X ∩ Sᵣ.X = {x₀, x₁, x₂}} {hYY : Sₗ.Y ∩ Sᵣ.Y = {y₀, y₁, y₂}} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum3 hXX hYY hXY hYX = some S) :
+    S.X = Sₗ.X ∪ Sᵣ.X := by
+Matroid/Sum3.lean:lemma standardReprSum3_Y_eq {Sₗ Sᵣ S : StandardRepr α Z2} {x₀ x₁ x₂ y₀ y₁ y₂ : α}
+    {hXX : Sₗ.X ∩ Sᵣ.X = {x₀, x₁, x₂}} {hYY : Sₗ.Y ∩ Sᵣ.Y = {y₀, y₁, y₂}} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hS : standardReprSum3 hXX hYY hXY hYX = some S) :
+    S.Y = Sₗ.Y ∪ Sᵣ.Y := by
+Matroid/Sum3.lean:lemma standardReprSum3_hasTuSigning {Sₗ Sᵣ S : StandardRepr α Z2} {x₀ x₁ x₂ y₀ y₁ y₂ : α}
+    {hXX : Sₗ.X ∩ Sᵣ.X = {x₀, x₁, x₂}} {hYY : Sₗ.Y ∩ Sᵣ.Y = {y₀, y₁, y₂}} {hXY : Sₗ.X ⫗ Sᵣ.Y} {hYX : Sₗ.Y ⫗ Sᵣ.X}
+    (hSₗ : Sₗ.B.HasTuSigning) (hSᵣ : Sᵣ.B.HasTuSigning) (hS : standardReprSum3 hXX hYY hXY hYX = some S) :
+    S.B.HasTuSigning := by
+Matroid/Sum3.lean:def Matroid.IsSum3of (M : Matroid α) (Mₗ Mᵣ : Matroid α) : Prop :=
+Matroid/Sum3.lean:lemma Matroid.IsSum3of.E_eq (M : Matroid α) (Mₗ Mᵣ : Matroid α) (hMMM : M.IsSum3of Mₗ Mᵣ) :
+    M.E = Mₗ.E ∪ Mᵣ.E := by
+Matroid/Sum3.lean:theorem Matroid.IsSum3of.isRegular {M Mₗ Mᵣ : Matroid α}
+    (hMMM : M.IsSum3of Mₗ Mᵣ) (hM : M.RankFinite) (hMₗ : Mₗ.IsRegular) (hMᵣ : Mᵣ.IsRegular) :
+    M.IsRegular := by
