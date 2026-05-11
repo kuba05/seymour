@@ -5,7 +5,7 @@ import Seymour.Matroid.Regularity
 
 Here we study the duals of matroids given by their standard representation.
 -/
-
+open scoped Classical
 open scoped Matrix
 open scoped Classical
 
