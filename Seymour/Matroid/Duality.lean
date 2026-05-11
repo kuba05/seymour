@@ -7,6 +7,7 @@ Here we study the duals of matroids given by their standard representation.
 -/
 open scoped Classical
 open scoped Matrix
+open scoped Classical
 
 variable {α R : Type*} [DecidableEq α]
 
@@ -32,56 +33,27 @@ lemma StandardRepr.dual_indices_union_eq [DivisionRing R] (S : StandardRepr α R
 lemma StandardRepr.dual_ground [DivisionRing R] (S : StandardRepr α R) : S✶.toMatroid.E = S.toMatroid.E :=
   S.dual_indices_union_eq
 
+lemma dual_standard_is_dual [DivisionRing R](S : StandardRepr α R) :
+    S.dual.toMatroid = S.toMatroid.dual := by
+      sorry
 
-def StandardRepr.equivX {S S' : StandardRepr α R} (h : S.X = S'.X) :
-    S'.X ≃ S.X :=
-  Equiv.setCongr h.symm
-
-def StandardRepr.equivUnion {S S' : StandardRepr α R} (h : S.X = S'.X) (hY : S.Y = S'.Y) :
-    ↑ (S'.X ∪ S'.Y) ≃ ↑ (S.X ∪ S.Y) :=
-  Equiv.setCongr ( by rw [h, hY])
--- 1. Turn the set equality into a type equivalence
-def StandardRepr.domainEquiv {S S' : StandardRepr α R} (h : S.X = S'.X ∧ S.Y = S'.Y) :
-    ↑(S'.X ∪ S'.Y) ≃ ↑(S.X ∪ S.Y) :=
-  Equiv.setCongr (by rw [h.1, h.2])
-
-
-set_option diagnostics true
-def VectorsWithOnlySomeIndexes (R: Type*)[Field R] (E : Set α)(S: Set α) : Submodule R (E → R) where
-  -- The set of vectors v where v(a) = 0 for all a ∉ S
-  carrier := {v : E → R | ∀ a: E, (a: α) ∉ S → v a = 0}
-  zero_mem' := by
-    intro a _
-    rfl
-  add_mem' := by
-    intro u v hu hv a ha
-    simp [hu a ha, hv a ha]
-  smul_mem' := by
-    intro c v hv a ha
-    simp [hv a ha]
-    
-
-
-
-/-
-private lemma base_iff_complement [Finite α] [Field R] (S : StandardRepr α R) (X : Set α) :
-    S.toMatroid.IsBase X ↔ (rowSpace R S) ⊓ (VectorsWithOnlySomeIndexes R S.toMatroid.E Xᶜ) = ⊥  ∧ Set.ncard X = Module.finrank R (rowSpace R S) := by
-  rw [Matroid.isBase_iff_maximal_indep]
-  constructor
-  · intro hX
-    constructor
-    · sorry
-    · sorry
-  · intro ⟨hX, hXSize⟩
-    have h := Submodule.finrank_sup_add_finrank_inf_eq (rowSpace R S) (VectorsWithOnlySomeIndexes R S.toMatroid.E Xᶜ)
-    rw [hX] at h
-    sorry
-    -/
-
-  
-
-    
-        
-
-
-
+lemma isRegular.dual2 [Fintype α]{M : Matroid α} (hM : M.IsRegular) :
+    (M✶).IsRegular := by
+      unfold Matroid.IsRegular
+      unfold Matroid.IsRegular at hM
+      obtain ⟨X, Y, x, hTU, hEq⟩ := hM
+      obtain ⟨someBase, h_someBase⟩ := x.toMatroid.exists_isBase  
+      obtain ⟨S, ⟨_, hS, hSTU⟩⟩ := x.exists_standardRepr_isBase_isTotallyUnimodular h_someBase hTU 
+      let S' := S.dual
+      refine ⟨S'.X, S'.X ∪ S'.Y, S'.toFull, ?_⟩
+      constructor
+      · unfold S'
+        change Matrix.IsTotallyUnimodular (((1 : Matrix S.Y S.Y _) ◫ -S.Bᵀ) · ∘ Subtype.toSum)
+        have h1 : S.Bᵀ.IsTotallyUnimodular := by 
+          rw [<- Matrix.transpose_isTotallyUnimodular_iff] at hSTU
+          exact hSTU
+        have h2 : (-S.Bᵀ).IsTotallyUnimodular := h1.neg
+        have h3 : (1 ◫ -S.Bᵀ).IsTotallyUnimodular := h2.one_fromCols
+        exact Matrix.IsTotallyUnimodular.comp_cols h3 Subtype.toSum
+      · convert_to S.dual.toMatroid = M.dual
+        rw [dual_standard_is_dual, hS, hEq]

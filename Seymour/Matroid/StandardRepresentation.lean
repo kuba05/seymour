@@ -32,6 +32,22 @@ structure StandardRepr (α R : Type*) [DecidableEq α] where
   /-- The computer can determine whether certain element is a col. -/
   decmemY : ∀ a, Decidable (a ∈ Y)
 
+def StandardRepr.toMatrix (α R : Type*) [DecidableEq α] [DivisionRing R] (S : StandardRepr α R) : 
+  Matrix S.X ↑(S.X ∪ S.Y) R :=
+  fun (i : S.X) (j : ↑(S.X ∪ S.Y)) =>
+    match S.decmemX (j : α) with
+    | .isTrue h =>
+      -- If the column is in X, we are in the Identity block
+      if (i : α) = (j : α) then 1 else 0
+    | .isFalse hNotX =>
+      -- If the column is not in X, it must be in Y
+      have hY : (j : α) ∈ S.Y := by
+        rcases j.prop with hX | hY
+        · contradiction -- hNotX immediately contradicts hX
+        · exact hY
+      -- Pull the value from the fundamental block B
+      S.B i ⟨(j : α), hY⟩
+
 private abbrev mkStandardRepr {α R : Type*} [DecidableEq α]
     {X : Set α} [hX : ∀ a, Decidable (a ∈ X)]
     {Y : Set α} [hY : ∀ a, Decidable (a ∈ Y)]

@@ -320,3 +320,4 @@ lemma StandardRepr.toMatroid_isRegular_iff_hasTuSigning (S : StandardRepr α Z2)
       have hjX : j.val ∉ S.X := (by simp [·] at hj)
       have hjY : j.val ∈ S.Y := by have : j.val ∈ S.X ∪ S.Y := j.property; tauto_set
       convert hBS i y <;> simp_all [StandardRepr.toFull]
+
