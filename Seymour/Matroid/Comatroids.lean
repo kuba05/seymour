@@ -102,6 +102,7 @@ private lemma dual_standardrepr_dual_matroid_helper [Fintype α] [Field R] (A B 
     := by
       intro E J M N Msmall Nsmall h_ort h_I
       by_contra h_J
+      
       sorry
 private lemma StandardDualOrto [Fintype α](A : StandardRepr α R) :
     have same_types : A.X = A.dual.Y ∧ A.Y = A.dual.X := by simp[StandardRepr.dual]
@@ -118,6 +119,8 @@ private lemma StandardDualOrto [Fintype α](A : StandardRepr α R) :
       simp only [Matrix.zero_apply, Matrix.mul_apply, Matrix.transpose_apply]
       dsimp [Matrix.fromCols]
       dsimp [Matrix]
+      rw [<-A.hXY.equivSumUnion.sum_comp, Fintype.sum_sum_type ]
+      
       rw [← Equiv.sum_comp]
       sorry
 
