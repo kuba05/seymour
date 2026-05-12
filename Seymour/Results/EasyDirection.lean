@@ -2,10 +2,20 @@ import Seymour.Matroid.Sum1
 import Seymour.Matroid.Sum2
 import Seymour.Matroid.Sum3
 import Seymour.Matroid.Graphicness
+import Seymour.Matroid.attempt_with_finite
 import Seymour.Matroid.R10
 
 
 variable {α : Type*} [DecidableEq α]
+
+lemma comatroid_regular {α : Type} [DecidableEq α] {M : Matroid α} (hM : M.IsCographic) (hM_finite : M.Finite) : M.IsRegular := by 
+  classical
+  unfold Matroid.IsCographic at hM
+  have := hM.isRegular
+  have fin : M.dual.Finite := by exact Matroid.dual_finite
+  have := isRegular.dual this fin
+  rw [M.dual_dual] at this
+  exact this
 
 /-- Given matroid can be constructed from graphic matroids & cographics matroids & R10 using 1-sums & 2-sums & 3-sums. -/
 inductive Matroid.IsGood : Matroid α → Prop
@@ -22,8 +32,7 @@ inductive Matroid.IsGood : Matroid α → Prop
 theorem Matroid.IsGood.isRegular {M : Matroid α} (hM : M.IsGood) : M.IsRegular := by
   induction hM with
   | graphic hM => exact hM.isRegular
-  | cographic hM =>
-    
+  | cographic hM => sorry
   | @isomorphicR10 M e hM => simp [←M.isRegular_mapEquiv_iff e, hM]
   | is1sum hMMM hM _ _ ihₗ ihᵣ => exact hMMM.isRegular hM ihₗ ihᵣ
   | is2sum hMMM hM _ _ ihₗ ihᵣ => exact hMMM.isRegular hM ihₗ ihᵣ
