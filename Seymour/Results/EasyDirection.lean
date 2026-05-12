@@ -2,7 +2,7 @@ import Seymour.Matroid.Sum1
 import Seymour.Matroid.Sum2
 import Seymour.Matroid.Sum3
 import Seymour.Matroid.Graphicness
-import Seymour.Matroid.attempt_with_finite
+import Seymour.Matroid.Comatroids
 import Seymour.Matroid.R10
 
 
