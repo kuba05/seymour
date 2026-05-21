@@ -5,8 +5,7 @@ import Seymour.Matroid.Regularity
 
 Here we study the duals of matroids given by their standard representation.
 -/
-open scoped Classical
-open scoped Matrix
+
 open scoped Classical
 
 variable {α R : Type*} [DecidableEq α]
@@ -32,4 +31,3 @@ lemma StandardRepr.dual_indices_union_eq [DivisionRing R] (S : StandardRepr α R
 @[simp]
 lemma StandardRepr.dual_ground [DivisionRing R] (S : StandardRepr α R) : S✶.toMatroid.E = S.toMatroid.E :=
   S.dual_indices_union_eq
-
