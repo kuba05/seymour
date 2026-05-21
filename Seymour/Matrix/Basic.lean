@@ -75,7 +75,7 @@ lemma sum_elem_smul_matrix_row_of_nmem [DecidableEq α] {β : Type*} [NonAssocSe
   rw [Matrix.one_apply_ne' (ne_of_mem_of_not_mem y.property hxS)]
   apply smul_zero
 
-lemma sum_one_times_matrix {α β : Type} [DecidableEq α] [CommSemiring β] {x : α} [Fintype α]
+lemma sum_one_times_matrix {α β : Type*} [DecidableEq α] [CommSemiring β] {x : α} [Fintype α]
     (f : α → β) :
     ∑ i : α, (1 : Matrix α α β) x i * f i = f x := by
   convert fintype_sum_of_single_nonzero (fun i : α => (1 : Matrix α α β) x i * f i) x (by
@@ -84,7 +84,7 @@ lemma sum_one_times_matrix {α β : Type} [DecidableEq α] [CommSemiring β] {x 
     exact Matrix.one_apply_ne' hix
   )
   simp
-lemma sum_matrix_times_one {α β : Type} [DecidableEq α] [CommSemiring β] {x : α} [Fintype α]
+lemma sum_matrix_times_one {α β : Type*} [DecidableEq α] [CommSemiring β] {x : α} [Fintype α]
     (f : α → β) :
     ∑ i : α, f i * (1 : Matrix α α β) x i = f x := by
   convert fintype_sum_of_single_nonzero (fun i : α => f i * (1 : Matrix α α β) x i) x (by

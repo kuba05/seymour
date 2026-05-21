@@ -1,34 +1,35 @@
 import Seymour.Matroid.Duality
+import Seymour.Matroid.Graphicness
 
 open scoped Matrix
 open Classical
 
 section typing_hell
 
-private lemma l1_aux {α β γ : Type} (X Y Z : Set α) (hZ : Y ∪ X = Z) (z : Z.Elem) (f : β → (Y ∪ X).Elem → γ) (j : β) :
+private lemma l1_aux {α β γ : Type*} (X Y Z : Set α) (hZ : Y ∪ X = Z) (z : Z.Elem) (f : β → (Y ∪ X).Elem → γ) (j : β) :
     (hZ ▸ f) j z = (hZ ▸ f j) z := by
   subst hZ
   rfl
 
-private lemma l1 {α β : Type} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
+private lemma l1 {α β : Type*} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
     ((Set.union_comm X Y).symm ▸
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j ⟨i.val, Set.subset_union_left i.property⟩ =
     ((Set.union_comm X Y).symm ▸ (
     fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j) ⟨i.val, Set.subset_union_left i.property⟩ := by
   apply l1_aux
 
-private lemma l2_aux {α β : Type} (X Y Z : Set α) (hZ : Y ∪ X = Z) (z : Z.Elem) (f : (Y ∪ X).Elem → β) :
+private lemma l2_aux {α β : Type*} (X Y Z : Set α) (hZ : Y ∪ X = Z) (z : Z.Elem) (f : (Y ∪ X).Elem → β) :
     (hZ ▸ f) z = f (hZ ▸ z) := by
   subst hZ
   rfl
 
-private lemma l2 {α β : Type} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
+private lemma l2 {α β : Type*} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
     ((Set.union_comm X Y).symm ▸ (
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j) ⟨i.val, Set.subset_union_left i.property⟩ =
     ((fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j) ((Set.union_comm X Y).symm ▸ ⟨i.val, Set.subset_union_left i.property⟩) := by
   apply l2_aux
 
-private lemma ll {α β : Type} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j : Y.Elem) (A : Matrix Y.Elem Y.Elem β) (B : Matrix Y.Elem X.Elem β) :
+private lemma ll {α β : Type*} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j : Y.Elem) (A : Matrix Y.Elem Y.Elem β) (B : Matrix Y.Elem X.Elem β) :
     ((Set.union_comm X Y).symm ▸
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j ⟨i.val, Set.subset_union_left i.property⟩ =
     (fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j ⟨i.val, Set.subset_union_right i.property⟩ := by
@@ -38,20 +39,20 @@ private lemma ll {α β : Type} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j 
   apply Subtype.subst_elem
 
 
-private lemma l1' {α β : Type} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
+private lemma l1' {α β : Type*} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
     ((Set.union_comm X Y).symm ▸
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j ⟨i.val, Set.subset_union_right i.property⟩ =
     ((Set.union_comm X Y).symm ▸ (
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j) ⟨i.val, Set.subset_union_right i.property⟩ := by
   apply l1_aux
 
-private lemma l2' {α β : Type} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
+private lemma l2' {α β : Type*} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
     ((Set.union_comm X Y).symm ▸ (
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j) ⟨i.val, Set.subset_union_right i.property⟩ =
     ((fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j) ((Set.union_comm X Y).symm ▸ ⟨i.val, Set.subset_union_right i.property⟩) := by
   apply l2_aux
 
-private lemma ll' {α β : Type} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j : Y.Elem) (A : Matrix Y.Elem Y.Elem β) (B : Matrix Y.Elem X.Elem β) :
+private lemma ll' {α β : Type*} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j : Y.Elem) (A : Matrix Y.Elem Y.Elem β) (B : Matrix Y.Elem X.Elem β) :
     ((Set.union_comm X Y).symm ▸
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j ⟨i.val, Set.subset_union_right i.property⟩ =
      (fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j ⟨i.val, Set.subset_union_left i.property⟩ := by
@@ -61,13 +62,13 @@ private lemma ll' {α β : Type} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j
   apply Subtype.subst_elem
 
 
-private lemma eq_rec_set_apply {α R : Type} {X Y1 Y2 : Set α}
+private lemma eq_rec_set_apply {α R : Type*} {X Y1 Y2 : Set α}
   (h : Y1 = Y2) (f : ↑X → ↑Y1 → R) (i : ↑X) (j : ↑Y2) :
   Eq.rec (motive := fun (x : Set α) _ => ↑X → ↑x → R) f h i j = 
   f i (Eq.rec (motive := fun (x : Set α) _ => ↑x) j h.symm) := by
   subst h
   rfl
-private lemma cast_val_eq {α : Type} {s t : Set α} (h : s = t) (x : α) (hx : x ∈ s) :
+private lemma cast_val_eq {α : Type*} {s t : Set α} (h : s = t) (x : α) (hx : x ∈ s) :
   ↑(h ▸ Subtype.mk x hx : ↥t) = x := by
   subst h
   rfl
@@ -75,7 +76,7 @@ private lemma cast_val_eq {α : Type} {s t : Set α} (h : s = t) (x : α) (hx : 
 
 end typing_hell
 
-variable {α R : Type} [DecidableEq α] [Field R]
+variable {α R : Type*} [DecidableEq α] [Field R]
 
 
 omit [DecidableEq α] in
@@ -417,7 +418,7 @@ lemma StandardRepr.dual_toMatroid (S : StandardRepr α R) [Fintype S.X][Fintype 
 
 
 
-lemma isRegular.dual {M : Matroid α} (hM : M.IsRegular) (hM_is_finite : M.Finite):
+lemma Matroid.isRegular.dual {M : Matroid α} (hM : M.IsRegular) (hM_is_finite : M.Finite):
     (M✶).IsRegular := by
       unfold Matroid.IsRegular
       unfold Matroid.IsRegular at hM
@@ -458,4 +459,8 @@ lemma isRegular.dual {M : Matroid α} (hM : M.IsRegular) (hM_is_finite : M.Finit
       · convert_to S.dual.toMatroid = M.dual
         rw [StandardRepr.dual_toMatroid, hS, hEq]
 
-
+lemma Matroid.IsCographic.isRegular {M : Matroid α} (hM_fin : M.Finite) (hM : M.IsCographic) :
+    M.IsRegular := by
+      have := Matroid.isRegular.dual (Matroid.IsGraphic.isRegular hM) M.dual_finite
+      rw [Matroid.dual_dual] at this
+      exact this
