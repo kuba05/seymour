@@ -8,7 +8,6 @@ import Seymour.Matroid.R10
 
 variable {α : Type*} [DecidableEq α]
 
-
 /-- Given matroid can be constructed from graphic matroids & cographics matroids & R10 using 1-sums & 2-sums & 3-sums. -/
 inductive Matroid.IsGood : Matroid α → Prop
 -- leaf constructors
@@ -19,7 +18,6 @@ inductive Matroid.IsGood : Matroid α → Prop
 | is1sum {M Mₗ Mᵣ : Matroid α} (hMMM : M.IsSum1of Mₗ Mᵣ) (hM : M.RankFinite) (hMₗ : Mₗ.IsGood) (hMᵣ : Mᵣ.IsGood) : M.IsGood
 | is2sum {M Mₗ Mᵣ : Matroid α} (hMMM : M.IsSum2of Mₗ Mᵣ) (hM : M.RankFinite) (hMₗ : Mₗ.IsGood) (hMᵣ : Mᵣ.IsGood) : M.IsGood
 | is3sum {M Mₗ Mᵣ : Matroid α} (hMMM : M.IsSum3of Mₗ Mᵣ) (hM : M.RankFinite) (hMₗ : Mₗ.IsGood) (hMᵣ : Mᵣ.IsGood) : M.IsGood
-
 
 /-- Corollary of the easy direction of the Seymour's theorem. -/
 theorem Matroid.IsGood.isRegular {M : Matroid α} (hM : M.IsGood) : M.IsRegular := by
