@@ -119,7 +119,6 @@ lemma StandardRepr.toMatroid.isBase_iff {S : StandardRepr α R} [Fintype S.X] [F
     have : S.toMatroid.Indep I := hI_base.1
     rw [StandardRepr.toMatroid_indep_iff_submatrix] at this
     obtain ⟨hI, this⟩ := this
-    unfold small
     convert this
   intro ⟨hI_size, linear_indep⟩
   apply Matroid.isBase_ncard (S.toMatroid_rankFinite_of_finite_X) hI_size.symm S.toMatroid_isBase_X
@@ -172,8 +171,7 @@ private lemma dual_standardrepr_dual_matroid_helper  [Field R] (S S' : StandardR
     · ext i
       have h_sum_i := congr_fun h_sum i
       rw [←h_sum_i]
-      unfold Matrix.mulVec dotProduct
-      simp [mul_comm]
+      simp [Matrix.mulVec, dotProduct, mul_comm]
     · simp only [ne_eq]
       intro h
       obtain ⟨i, hi⟩ := h_nz
@@ -244,13 +242,10 @@ private lemma dual_standardrepr_dual_matroid_helper  [Field R] (S S' : StandardR
   let v' : I → R := fun j => v ⟨j.val, hI j.prop⟩
   have he3 := hM'_isFull v'
   have he4 : M *ᵥ v = 0 := by -- from h0 and v
-    unfold v
     rw [Matrix.mulVec_mulVec, h0, Matrix.zero_mulVec]
   have hi : ∀ i : {x : U // ¬ p x}, v i = 0 := by -- from he1.1, N' and v
     intro i
     have := he1.1
-    unfold v
-    unfold N' at this
     let i_cast : ↑((S.X ∪ S.Y) \ I) := ⟨i.val.val, ⟨i.val.property, i.property⟩⟩
     have hi := congr_fun this i_cast
     exact hi
@@ -258,9 +253,7 @@ private lemma dual_standardrepr_dual_matroid_helper  [Field R] (S S' : StandardR
     ext i 
     have h4_i := congr_fun he4 i
     rw [← h4_i]
-    unfold M'
-    unfold Matrix.mulVec Matrix.submatrix dotProduct v'
-    simp only [id_eq, HasSubset.Subset.elem, Matrix.of_apply]
+    simp only [M', Matrix.mulVec, Matrix.submatrix, dotProduct, v', id_eq, HasSubset.Subset.elem, Matrix.of_apply]
     symm
     have : ∑ x : U, M i x * v x = ∑ x : {x : U // p x}, M i x * v x + ∑ x : {x : U // ¬ p x}, M i x * v x := by
       classical
@@ -401,7 +394,7 @@ lemma StandardRepr.dual_toMatroid_dual (S : StandardRepr α R) [Fintype S.X][Fin
         dsimp [StandardRepr.dual]
         assumption
       have := dual_toMatroid_one_way S.dual hJ
-      simp only [toMatroid_E, dual_dual, sdiff_sdiff_right_self, Set.inf_eq_inter, J] at this
+      simp only [Matrix.toMatroid_E, StandardRepr.dual_dual, sdiff_sdiff_right_self, Set.inf_eq_inter, J] at this
       convert_to S✶.toMatroid.IsBase ((S.X ∪ S.Y) \ I) → S.toMatroid.IsBase ((S.X ∪ S.Y) ∩ I)
       · rw [←same_E2]
         simp
@@ -446,8 +439,7 @@ lemma Matroid.isRegular.dual {M : Matroid α} (hM : M.IsRegular) (hM_is_finite :
   let S' := S.dual
   refine ⟨S'.X, S'.X ∪ S'.Y, S'.toFull, ?_⟩
   constructor
-  · unfold S'
-    change Matrix.IsTotallyUnimodular (((1 : Matrix S.Y S.Y _) ◫ -S.Bᵀ) · ∘ Subtype.toSum)
+  · change Matrix.IsTotallyUnimodular (((1 : Matrix S.Y S.Y _) ◫ -S.Bᵀ) · ∘ Subtype.toSum)
     have h1 : S.Bᵀ.IsTotallyUnimodular := by 
       rw [← Matrix.transpose_isTotallyUnimodular_iff] at hSTU
       exact hSTU
