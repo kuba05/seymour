@@ -78,10 +78,6 @@ end typing_hell
 
 variable {α R : Type*} [Field R]
 
-variable [DecidableEq α]
-
-
-omit [DecidableEq α] in
 lemma Matroid.isBase_ncard {M : Matroid α} (hM : M.RankFinite) {I J : Set α} (h_size : I.ncard = J.ncard) (hI : M.IsBase I) (hJ : M.Indep J) :
     M.IsBase J := by
   rw [Matroid.isBase_iff_maximal_indep]
@@ -104,8 +100,25 @@ lemma Matroid.isBase_ncard {M : Matroid α} (hM : M.RankFinite) {I J : Set α} (
 
   exact (Set.eq_of_subset_of_ncard_le hJ_y this hy_is_finite).symm.subset
 
-lemma StandardRepr.toMatroid.isBase_iff {S : StandardRepr α R} [Fintype S.X] [Fintype S.Y] {I : Set α} (hI : I ⊆ (S.X ∪ S.Y)):
-    S.toMatroid.IsBase I ↔ (I.ncard = S.X.ncard ∧ LinearIndependent R (S.toFull.submatrix id (fun j => ⟨j.val, hI j.property⟩): Matrix S.X I R)ᵀ ) := by
+lemma Matrix.almost_square_transpose_LinearIndependent {A B : Set α}[Fintype A] [Fintype B] (N : Matrix A B R) (h_card : #A = #B) :
+    LinearIndependent R N → LinearIndependent R Nᵀ := by
+  intro hN_rows
+  rw [linearIndependent_iff_card_eq_finrank_span] at hN_rows
+  rw [linearIndependent_iff_card_eq_finrank_span, ← h_card, hN_rows]
+  have {U V : Set α}[Fintype U][Fintype V](M : Matrix U V R): Set.finrank R (Set.range M) = M.rank := by
+    rw [Matrix.rank_eq_finrank_span_row M]
+    rfl
+  repeat rw [this]
+  exact (Matrix.rank_transpose N).symm
+
+
+
+variable [DecidableEq α]
+
+
+
+lemma StandardRepr.toMatroid.isBase_iff {S : StandardRepr α R} [Fintype S.X] [Fintype S.Y] {I : Set α} (hI : I ⊆ (S.X ∪ S.Y)) :
+    S.toMatroid.IsBase I ↔ (I.ncard = S.X.ncard ∧ LinearIndependent R (S.toFull.submatrix id (fun j => ⟨j.val, hI j.property⟩) : Matrix S.X I R)ᵀ ) := by
   set small : Matrix S.X I R := (S.toFull.submatrix id (fun j => ⟨j.val, hI j.property⟩))
   constructor
   · intro hI_base
@@ -126,19 +139,7 @@ lemma StandardRepr.toMatroid.isBase_iff {S : StandardRepr α R} [Fintype S.X] [F
   use hI
   convert linear_indep
 
-omit [DecidableEq α] in
-lemma Matrix.almost_square_transpose_LinearIndependent {A B : Set α}[Fintype A] [Fintype B](N : Matrix A B R) (h_card : #A = #B) : LinearIndependent R N → LinearIndependent R Nᵀ := by
-  intro hN_rows
-  rw [linearIndependent_iff_card_eq_finrank_span] at hN_rows
-  rw [linearIndependent_iff_card_eq_finrank_span, ← h_card, hN_rows]
-  have {U V : Set α}[Fintype U][Fintype V](M : Matrix U V R): Set.finrank R (Set.range M) = M.rank := by
-    rw [Matrix.rank_eq_finrank_span_row M]
-    rfl
-  repeat rw [this]
-  exact (Matrix.rank_transpose N).symm
-
-omit [Field R] in
-private lemma dual_standardrepr_dual_matroid_helper  [Field R] (S S' : StandardRepr α R) [Fintype S.X][Fintype S.Y][Fintype S'.X][Fintype S'.Y](I : Set α)[Fintype I]
+private lemma dual_standardrepr_dual_matroid_helper (S S' : StandardRepr α R) [Fintype S.X][Fintype S.Y][Fintype S'.X][Fintype S'.Y](I : Set α)[Fintype I]
     (hXY : S.X = S'.Y) (hYX : S.Y = S'.X) (hI : I ⊆ (S.X ∪ S.Y)) (hSize : I.ncard = S.X.ncard) :
     let M : Matrix S.X (S.X ∪ S.Y).Elem R := S.toFull
     let N : Matrix S.Y (S.X ∪ S.Y).Elem R := hXY ▸ hYX ▸ Set.union_comm S'.Y S'.X ▸ S'.toFull
@@ -361,7 +362,7 @@ private lemma dual_toMatroid_one_way {I : Set α}(S : StandardRepr α R) (hI : I
     have h_set : S✶.Y ∪ S✶.X = S✶.X ∪ S✶.Y := Set.union_comm S✶.Y S✶.X
     apply eq_of_heq
 
-    have elim_cast (U: Set _)(heq : S.dual.X ∪ S.dual.Y = U)(elem_r : U) : elem_r.val = ↑r → HEq (M c (Subtype.mk (↑r) h_eq)) ((heq ▸ M) c elem_r) := by
+    have elim_cast (U: Set α) (heq : S.dual.X ∪ S.dual.Y = U) (elem_r : U) : elem_r.val = ↑r → HEq (M c (Subtype.mk (↑r) h_eq)) ((heq ▸ M) c elem_r) := by
       intro h_val
       subst heq
       apply heq_of_eq
