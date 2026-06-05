@@ -71,10 +71,13 @@ private lemma cast_val_eq {α : Type*} {s t : Set α} (h : s = t) (x : α) (hx :
   subst h
   rfl
 
-
 end typing_hell
 
+
+
 variable {α R : Type*} [Field R]
+
+
 
 lemma Matroid.isBase_ncard {M : Matroid α} (hM : M.RankFinite) {I J : Set α} (h_size : I.ncard = J.ncard) (hI : M.IsBase I) (hJ : M.Indep J) :
     M.IsBase J := by
