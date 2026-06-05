@@ -38,7 +38,6 @@ private lemma ll {α β : Type*} [DecidableEq α] (X Y : Set α) (i : X.Elem) (j
   ext
   apply Subtype.subst_elem
 
-
 private lemma l1' {α β : Type*} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (j : Y.Elem) (A : Y.Elem → Y.Elem → β) (B : Y.Elem → X.Elem → β) :
     ((Set.union_comm X Y).symm ▸
       fun x : Y.Elem => (fun y : Y.Elem => Sum.elim (A y) (B y)) x ∘ Subtype.toSum) j ⟨i.val, Set.subset_union_right i.property⟩ =
@@ -60,7 +59,6 @@ private lemma ll' {α β : Type*} [DecidableEq α] (X Y : Set α) (i : Y.Elem) (
   congr
   ext
   apply Subtype.subst_elem
-
 
 private lemma eq_rec_set_apply {α R : Type*} {X Y1 Y2 : Set α}
   (h : Y1 = Y2) (f : ↑X → ↑Y1 → R) (i : ↑X) (j : ↑Y2) :
@@ -100,7 +98,7 @@ lemma Matroid.isBase_ncard {M : Matroid α} (hM : M.RankFinite) {I J : Set α} (
 
   exact (Set.eq_of_subset_of_ncard_le hJ_y this hy_is_finite).symm.subset
 
-lemma Matrix.almost_square_transpose_LinearIndependent {A B : Set α}[Fintype A] [Fintype B] (N : Matrix A B R) (h_card : #A = #B) :
+lemma Matrix.almost_square_transpose_LinearIndependent {A B : Set α} [Fintype A] [Fintype B] (N : Matrix A B R) (h_card : #A = #B) :
     LinearIndependent R N → LinearIndependent R Nᵀ := by
   intro hN_rows
   rw [linearIndependent_iff_card_eq_finrank_span] at hN_rows
@@ -118,8 +116,8 @@ variable [DecidableEq α]
 
 
 lemma StandardRepr.toMatroid.isBase_iff {S : StandardRepr α R} [Fintype S.X] [Fintype S.Y] {I : Set α} (hI : I ⊆ (S.X ∪ S.Y)) :
-    S.toMatroid.IsBase I ↔ (I.ncard = S.X.ncard ∧ LinearIndependent R (S.toFull.submatrix id (fun j => ⟨j.val, hI j.property⟩) : Matrix S.X I R)ᵀ ) := by
-  set small : Matrix S.X I R := (S.toFull.submatrix id (fun j => ⟨j.val, hI j.property⟩))
+    S.toMatroid.IsBase I ↔ (I.ncard = S.X.ncard ∧ LinearIndependent R (S.toFull.submatrix id hI.elem : Matrix S.X I R)ᵀ ) := by
+  set small : Matrix S.X I R := S.toFull.submatrix id hI.elem 
   constructor
   · intro hI_base
     have hI_size : I.ncard = S.X.ncard := by
@@ -277,7 +275,6 @@ private lemma dual_standardrepr_dual_matroid_helper (S S' : StandardRepr α R) [
       exact h_in
     · exact hi ⟨i, h⟩
   exact he1.2 (he2 v_is_zero)
-    
 
 private lemma StandardDualOrto  (S : StandardRepr α R) [Fintype S.X][Fintype S.Y]:
     S.toFull * (Set.union_comm S.X S.Y ▸ S.dual.toFull)ᵀ = 0 := by
@@ -358,18 +355,18 @@ private lemma dual_toMatroid_one_way {I : Set α}(S : StandardRepr α R) (hI : I
     simp only [Matrix.submatrix_apply, Matrix.transpose_apply, id]
     revert M
     congr! with M t
-    generalize_proofs h_eq h_1 h_2
+    generalize_proofs h_eq h_1
     have h_set : S✶.Y ∪ S✶.X = S✶.X ∪ S✶.Y := Set.union_comm S✶.Y S✶.X
     apply eq_of_heq
 
-    have elim_cast (U: Set α) (heq : S.dual.X ∪ S.dual.Y = U) (elem_r : U) : elem_r.val = ↑r → HEq (M c (Subtype.mk (↑r) h_eq)) ((heq ▸ M) c elem_r) := by
+    have elim_cast (U : Set α) (heq : S.dual.X ∪ S.dual.Y = U) (elem_r : U) : elem_r.val = ↑r → HEq (M c (hJ.elem r)) ((heq ▸ M) c elem_r) := by
       intro h_val
       subst heq
       apply heq_of_eq
       congr 1
       apply Subtype.ext
       exact h_val.symm
-    apply elim_cast (S✶.Y ∪ S✶.X) h_1 (h_2.elem r)
+    apply elim_cast (S✶.Y ∪ S✶.X) h_eq (h_1.elem r)
     rfl
 
 lemma StandardRepr.dual_toMatroid_dual (S : StandardRepr α R) [Fintype S.X][Fintype S.Y]:
@@ -388,10 +385,10 @@ lemma StandardRepr.dual_toMatroid_dual (S : StandardRepr α R) [Fintype S.X][Fin
       exact this
     · set J := S.toMatroid.E \ I
       set hJ : J ⊆ S.toMatroid.E := Set.diff_subset
-      have xx : Fintype S.dual.X := by
+      have : Fintype S.dual.X := by
         dsimp [StandardRepr.dual]
         assumption
-      have xx : Fintype S.dual.Y := by
+      have : Fintype S.dual.Y := by
         dsimp [StandardRepr.dual]
         assumption
       have := dual_toMatroid_one_way S.dual hJ
@@ -404,13 +401,10 @@ lemma StandardRepr.dual_toMatroid_dual (S : StandardRepr α R) [Fintype S.X][Fin
         rw [Set.inter_eq_right.mpr hI]
       · exact this
 
-
 lemma StandardRepr.dual_toMatroid (S : StandardRepr α R) [Fintype S.X][Fintype S.Y]:
     S.dual.toMatroid = S.toMatroid.dual := by
   rw [Matroid.eq_dual_comm]
   exact StandardRepr.dual_toMatroid_dual S
-
-
 
 lemma Matroid.isRegular.dual {M : Matroid α} (hM : M.IsRegular) (hM_is_finite : M.Finite):
     (M✶).IsRegular := by
